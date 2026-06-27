@@ -1,0 +1,100 @@
+{
+  "metadata": {
+    "title": "AI Review Dashboard",
+    "description": "AI に PR をレビューさせ、価値ある指摘だけを GitHub へ反映するローカルツール"
+  },
+  "common": {
+    "appName": "AI Review Dashboard",
+    "retry": "再試行",
+    "open": "開く"
+  },
+  "nav": {
+    "repositories": "リポジトリ",
+    "settings": "設定",
+    "authReuse": "ローカルの <gh>gh</gh> / <claude>Claude Code</claude> 認証を再利用します。"
+  },
+  "language": {
+    "label": "言語"
+  },
+  "auth": {
+    "loggedOut": "未ログイン",
+    "bannerTitle": "GitHub にログインしていません",
+    "bannerBody": "ターミナルで <code>gh auth login</code> を実行してから、このページを再読み込みしてください。"
+  },
+  "home": {
+    "title": "リポジトリ",
+    "subtitle": "レビューするリポジトリを選択してください"
+  },
+  "settingsPage": {
+    "title": "設定",
+    "subtitle": "レビュープロンプトとモデルの調整"
+  },
+  "repos": {
+    "selectOwner": "オーナーを選択",
+    "all": "すべて",
+    "mineSuffix": "（自分）",
+    "searchPlaceholder": "リポジトリを検索…",
+    "noMatch": "一致するリポジトリがありません",
+    "notFound": "リポジトリが見つかりません"
+  },
+  "pulls": {
+    "title": "オープンな Pull Request",
+    "backToRepos": "リポジトリ一覧へ戻る",
+    "noOpenTitle": "オープンな PR がありません",
+    "noOpenDescription": "このリポジトリには現在レビュー可能なオープン PR がありません。",
+    "draft": "Draft"
+  },
+  "review": {
+    "headerSubtitle": "AI コードレビュー",
+    "backToPulls": "PR 一覧へ戻る",
+    "run": "レビュー実行",
+    "rerun": "再レビュー",
+    "running": "レビュー中…",
+    "selectAll": "全選択",
+    "deselectAll": "全解除",
+    "issueCount": "{count} 件の指摘",
+    "submittedSuffix": "（{count} 件反映済み）",
+    "selectedCount": "{count} 件選択中",
+    "submit": "選択した {count} 件を PR に反映",
+    "submitting": "投稿中…",
+    "noIssuesTitle": "指摘はありませんでした",
+    "noIssuesDescription": "AI は今回の変更に対して反映すべき指摘を見つけませんでした。",
+    "idleTitle": "まだレビューを実行していません",
+    "idleDescription": "「レビュー実行」を押すと AI が PR を解析し、指摘を生成します。",
+    "invalidReason": "{filePath}:{line} は PR の diff に含まれないため、インラインコメントを投稿できません。",
+    "toast": {
+      "runFailedTitle": "レビューに失敗しました",
+      "submittedTitle": "{count} 件をレビューコメントとして投稿しました",
+      "submittedDescription": "GitHub で確認できます",
+      "skippedTitle": "{count} 件はインライン投稿できませんでした",
+      "submitFailedTitle": "投稿に失敗しました"
+    }
+  },
+  "reviewCard": {
+    "selectAria": "{title} を選択",
+    "applied": "反映済み"
+  },
+  "progress": {
+    "running": "AI レビューを実行中…",
+    "aborted": "レビューを中断しました",
+    "phase": {
+      "checkout": "PR を取得",
+      "generating": "レビュー生成",
+      "done": "完了",
+      "error": "エラー"
+    }
+  },
+  "settingsForm": {
+    "modelTitle": "モデル",
+    "modelDescription": "レビューに使用する Claude モデル。ローカルの Claude Code 認証を再利用します。",
+    "promptTitle": "レビュープロンプト",
+    "promptDescription": "何をどの観点でレビューするかを自由に記述できます。レビュー実行時にシステム指示へ差し込まれます。",
+    "promptPlaceholder": "レビューの観点・重視点を記述…",
+    "resetDefault": "デフォルトに戻す",
+    "charCount": "{count} 文字",
+    "save": "設定を保存",
+    "saving": "保存中…",
+    "savedTitle": "設定を保存しました",
+    "saveFailedTitle": "保存に失敗しました"
+  }
+}

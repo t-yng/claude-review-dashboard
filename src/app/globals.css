@@ -1,0 +1,84 @@
+@import "tailwindcss";
+
+/*
+ * AI Review Dashboard — ダークテーマ固定のカラートークン。
+ * ベースは深いニュートラルグレー(zinc系)、アクセントは emerald 1 色。
+ * 重要度は critical=赤 / warning=琥珀 / info=青 で区別する。
+ */
+@theme {
+  --color-background: #0a0a0b;
+  --color-surface: #131316;
+  --color-card: #161619;
+  --color-card-hover: #1c1c20;
+  --color-foreground: #f4f4f5;
+  --color-muted: #1f1f23;
+  --color-muted-foreground: #a1a1aa;
+  --color-subtle: #71717a;
+  --color-border: #27272a;
+  --color-border-strong: #3f3f46;
+
+  --color-accent: #34d399;
+  --color-accent-foreground: #052e16;
+  --color-accent-muted: #064e3b;
+
+  --color-critical: #f87171;
+  --color-critical-bg: #2a1416;
+  --color-warning: #fbbf24;
+  --color-warning-bg: #2a2010;
+  --color-info: #60a5fa;
+  --color-info-bg: #11203a;
+
+  --font-sans: "Fira Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "Fira Code", ui-monospace, "SF Mono", Menlo, monospace;
+
+  --radius: 0.625rem;
+}
+
+* {
+  border-color: var(--color-border);
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* スクロールバー（ダーク） */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-border-strong);
+  border-radius: 9999px;
+  border: 2px solid var(--color-background);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-subtle);
+}
+
+/* shiki のコードブロックをカード背景に馴染ませる */
+.shiki {
+  background-color: transparent !important;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}

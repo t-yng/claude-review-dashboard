@@ -1,0 +1,100 @@
+{
+  "metadata": {
+    "title": "AI Review Dashboard",
+    "description": "A local tool that lets AI review your PRs and apply only the valuable findings to GitHub."
+  },
+  "common": {
+    "appName": "AI Review Dashboard",
+    "retry": "Retry",
+    "open": "Open"
+  },
+  "nav": {
+    "repositories": "Repositories",
+    "settings": "Settings",
+    "authReuse": "Reuses your local <gh>gh</gh> / <claude>Claude Code</claude> authentication."
+  },
+  "language": {
+    "label": "Language"
+  },
+  "auth": {
+    "loggedOut": "Not signed in",
+    "bannerTitle": "You are not signed in to GitHub",
+    "bannerBody": "Run <code>gh auth login</code> in your terminal, then reload this page."
+  },
+  "home": {
+    "title": "Repositories",
+    "subtitle": "Select a repository to review"
+  },
+  "settingsPage": {
+    "title": "Settings",
+    "subtitle": "Adjust the review prompt and model"
+  },
+  "repos": {
+    "selectOwner": "Select owner",
+    "all": "All",
+    "mineSuffix": " (you)",
+    "searchPlaceholder": "Search repositories…",
+    "noMatch": "No matching repositories",
+    "notFound": "No repositories found"
+  },
+  "pulls": {
+    "title": "Open pull requests",
+    "backToRepos": "Back to repositories",
+    "noOpenTitle": "No open PRs",
+    "noOpenDescription": "This repository currently has no open PRs available for review.",
+    "draft": "Draft"
+  },
+  "review": {
+    "headerSubtitle": "AI code review",
+    "backToPulls": "Back to pull requests",
+    "run": "Run review",
+    "rerun": "Re-review",
+    "running": "Reviewing…",
+    "selectAll": "Select all",
+    "deselectAll": "Deselect all",
+    "issueCount": "{count} findings",
+    "submittedSuffix": " ({count} applied)",
+    "selectedCount": "{count} selected",
+    "submit": "Apply {count} selected to PR",
+    "submitting": "Submitting…",
+    "noIssuesTitle": "No findings",
+    "noIssuesDescription": "The AI found no issues worth applying to these changes.",
+    "idleTitle": "No review run yet",
+    "idleDescription": "Press “Run review” to have the AI analyze the PR and generate findings.",
+    "invalidReason": "{filePath}:{line} is not part of the PR diff, so an inline comment cannot be posted.",
+    "toast": {
+      "runFailedTitle": "Review failed",
+      "submittedTitle": "Posted {count} review comments",
+      "submittedDescription": "You can check them on GitHub",
+      "skippedTitle": "{count} could not be posted inline",
+      "submitFailedTitle": "Submission failed"
+    }
+  },
+  "reviewCard": {
+    "selectAria": "Select {title}",
+    "applied": "Applied"
+  },
+  "progress": {
+    "running": "Running AI review…",
+    "aborted": "Review was interrupted",
+    "phase": {
+      "checkout": "Fetch PR",
+      "generating": "Generate review",
+      "done": "Done",
+      "error": "Error"
+    }
+  },
+  "settingsForm": {
+    "modelTitle": "Model",
+    "modelDescription": "The Claude model used for reviews. Reuses your local Claude Code authentication.",
+    "promptTitle": "Review prompt",
+    "promptDescription": "Describe freely what to review and from which perspective. It is injected into the system instructions when a review runs.",
+    "promptPlaceholder": "Describe what to focus on in reviews…",
+    "resetDefault": "Reset to default",
+    "charCount": "{count} characters",
+    "save": "Save settings",
+    "saving": "Saving…",
+    "savedTitle": "Settings saved",
+    "saveFailedTitle": "Failed to save"
+  }
+}
