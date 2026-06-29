@@ -1,14 +1,15 @@
 "use client";
 
-import { useFormatter } from "next-intl";
+import { useFormatter, useNow } from "next-intl";
 
 /**
- * ISO8601 を現在ロケールの相対時間で表示するコンポーネント。
- * 表示言語は next-intl のロケール設定に追従する。
+ * Component that displays an ISO8601 timestamp as relative time in the current locale.
+ * The display language follows next-intl's locale setting.
  */
 export function RelativeTime({ iso }: { iso: string }) {
   const format = useFormatter();
+  const now = useNow();
   const then = new Date(iso);
   if (Number.isNaN(then.getTime())) return <>{iso}</>;
-  return <>{format.relativeTime(then)}</>;
+  return <>{format.relativeTime(then, now)}</>;
 }
