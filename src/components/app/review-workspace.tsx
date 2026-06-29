@@ -52,7 +52,7 @@ export function ReviewWorkspace({
   const [submitting, setSubmitting] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
 
-  // diff から投稿可能行を算出（クライアント側で事前検証）。
+  // Compute postable lines from the diff (client-side pre-validation).
   const diffMap = useMemo(
     () => (prQuery.data ? parseDiffRightLines(prQuery.data.diff) : null),
     [prQuery.data],
@@ -97,7 +97,7 @@ export function ReviewWorkspace({
       onSession: (s) => {
         setSession(s);
         setItems(s.items);
-        // 投稿可能なものを既定で全選択。
+        // Select all postable items by default.
         const preselect = new Set(
           s.items.filter((i) => i.status !== "submitted" && !invalidReason(i)).map((i) => i.id),
         );
@@ -190,7 +190,7 @@ export function ReviewWorkspace({
 
   return (
     <div className="space-y-5">
-      {/* PR サマリ + 実行ボタン */}
+      {/* PR summary + run button */}
       <div className="rounded-[var(--radius)] border border-border bg-card p-5">
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0 space-y-1.5">
@@ -219,7 +219,7 @@ export function ReviewWorkspace({
         </div>
       </div>
 
-      {/* 進捗 */}
+      {/* Progress */}
       {(runState === "running" || (runState === "error" && progress.length > 0)) && (
         <ReviewProgressPanel progress={progress} error={runError} state={runState} />
       )}
@@ -228,7 +228,7 @@ export function ReviewWorkspace({
         <ErrorState message={runError} onRetry={handleRun} />
       ) : null}
 
-      {/* 結果 */}
+      {/* Results */}
       {items.length > 0 ? (
         <>
           <div className="flex flex-wrap items-center justify-between gap-3 rounded-[var(--radius)] border border-border bg-surface/95 px-4 py-3 backdrop-blur">

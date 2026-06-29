@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 
 const ORDER: ReviewProgress["phase"][] = ["checkout", "generating", "done"];
 
-/** レビュー実行中の進捗パネル。 */
+/** Progress panel shown while a review is running. */
 export function ReviewProgressPanel({
   progress,
   error,

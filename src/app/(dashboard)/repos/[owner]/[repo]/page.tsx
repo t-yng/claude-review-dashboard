@@ -8,7 +8,7 @@ interface PageProps {
   params: Promise<{ owner: string; repo: string }>;
 }
 
-/** PR 一覧画面。 */
+/** PR list screen. */
 export default async function RepoPullsPage({ params }: PageProps) {
   const { owner, repo } = await params;
   const repoFullName = `${owner}/${repo}`;

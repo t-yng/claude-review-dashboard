@@ -20,9 +20,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang={locale}>
       <head>
         {/*
-         * Fira Sans / Fira Code を読み込む。実行時にブラウザが取得し、
-         * オフライン時は globals.css のシステムフォントにフォールバックする
-         * （ビルド時フェッチを避けるため next/font/google は使わない）。
+         * Load Fira Sans / Fira Code. The browser fetches them at runtime and
+         * falls back to the system fonts in globals.css when offline
+         * (next/font/google is avoided to prevent build-time fetching).
          */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />

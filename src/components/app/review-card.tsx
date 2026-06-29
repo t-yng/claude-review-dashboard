@@ -13,11 +13,11 @@ interface ReviewCardProps {
   item: ReviewItem;
   checked: boolean;
   onCheckedChange: (checked: boolean) => void;
-  /** diff 範囲外などで投稿不可な場合の理由。 */
+  /** Reason it cannot be posted, e.g. when outside the diff range. */
   invalidReason?: string;
 }
 
-/** 1 件のレビュー指摘カード。 */
+/** Card for a single review finding. */
 export function ReviewCard({ item, checked, onCheckedChange, invalidReason }: ReviewCardProps) {
   const t = useTranslations("reviewCard");
   const meta = SEVERITY_META[item.severity];
@@ -33,7 +33,7 @@ export function ReviewCard({ item, checked, onCheckedChange, invalidReason }: Re
         submitted && "opacity-70",
       )}
     >
-      {/* 重要度カラーバー */}
+      {/* Severity color bar */}
       <div className={cn("absolute inset-y-0 left-0 w-1", meta.barClass)} />
 
       <div className="flex gap-3 p-4 pl-5">

@@ -6,7 +6,7 @@ import { CheckCircle2, AlertTriangle } from "lucide-react";
 import { api } from "@/lib/client/api";
 import { Skeleton } from "@/components/ui/skeleton";
 
-/** ヘッダー右側の gh 認証状態インジケータ。 */
+/** gh authentication status indicator on the right side of the header. */
 export function AuthStatusIndicator() {
   const t = useTranslations("auth");
   const { data, isLoading } = useQuery({
@@ -36,8 +36,8 @@ export function AuthStatusIndicator() {
 }
 
 /**
- * 未ログイン時に表示する認証バナー。
- * アプリからは gh auth login を実行せず、案内のみ行う。
+ * Authentication banner shown when not logged in.
+ * The app does not run `gh auth login` itself; it only provides guidance.
  */
 export function AuthBanner() {
   const t = useTranslations("auth");

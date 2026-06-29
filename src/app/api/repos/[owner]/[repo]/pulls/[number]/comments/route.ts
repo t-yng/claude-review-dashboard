@@ -15,7 +15,7 @@ const bodySchema = z.object({
 
 /**
  * POST /api/repos/{owner}/{repo}/pulls/{number}/comments
- * 選択された ReviewItem[] を 1 つの Review(COMMENT) としてインライン投稿する。
+ * Post the selected ReviewItem[] inline as a single Review (COMMENT).
  */
 export async function POST(
   req: Request,
@@ -26,7 +26,7 @@ export async function POST(
     const prNumber = Number(number);
     const parsed = bodySchema.parse(await req.json());
 
-    // 最新の diff / headSha を取得して投稿可否を検証する。
+    // Fetch the latest diff / headSha to validate whether posting is possible.
     const pr = await getPullDetail(owner, repo, prNumber);
     const headSha = parsed.headSha ?? pr.headRefOid;
 

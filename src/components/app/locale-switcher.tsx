@@ -8,7 +8,7 @@ import { type Locale, locales, LOCALE_LABELS } from "@/i18n/config";
 import { setLocale } from "@/i18n/locale";
 import { Select } from "@/components/ui/select";
 
-/** 言語切替セレクタ。選択を Cookie に保存し、サーバーコンポーネントを再描画する。 */
+/** Language switcher. Saves the choice to a cookie and re-renders server components. */
 export function LocaleSwitcher() {
   const locale = useLocale();
   const t = useTranslations("language");

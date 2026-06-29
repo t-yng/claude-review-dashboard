@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
-/** 一覧へ戻るリンク。 */
+/** Link back to the list. */
 export function BackLink({ href, label }: { href: string; label: string }) {
   return (
     <Link

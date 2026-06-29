@@ -8,7 +8,7 @@ interface PageProps {
   params: Promise<{ owner: string; repo: string; number: string }>;
 }
 
-/** レビュー結果画面。 */
+/** Review results screen. */
 export default async function ReviewPage({ params }: PageProps) {
   const { owner, repo, number } = await params;
   const repoFullName = `${owner}/${repo}`;

@@ -22,7 +22,7 @@ const NAV = [
   },
 ] as const;
 
-/** 左サイドバー（ナビゲーション）。 */
+/** Left sidebar (navigation). */
 export function Sidebar() {
   const pathname = usePathname();
   const t = useTranslations("nav");

@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 import { AlertCircle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-/** エラー表示（再試行ボタン付き）。 */
+/** Error display (with a retry button). */
 export function ErrorState({ message, onRetry }: { message: string; onRetry?: () => void }) {
   const t = useTranslations("common");
   return (
@@ -21,7 +21,7 @@ export function ErrorState({ message, onRetry }: { message: string; onRetry?: ()
   );
 }
 
-/** 汎用の空状態。 */
+/** Generic empty state. */
 export function EmptyState({
   icon: Icon,
   title,

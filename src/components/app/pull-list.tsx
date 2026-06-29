@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { ErrorState, EmptyState } from "@/components/app/states";
 import { RelativeTime } from "@/lib/client/format";
 
-/** 指定リポジトリのオープン PR 一覧。 */
+/** List of open PRs for the given repository. */
 export function PullList({ owner, repo }: { owner: string; repo: string }) {
   const t = useTranslations("pulls");
   const { data, isLoading, error, refetch } = useQuery({

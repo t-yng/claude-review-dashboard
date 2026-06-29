@@ -3,7 +3,7 @@ import { homedir } from "node:os";
 import { join } from "node:path";
 import { appSettingsSchema, DEFAULT_SETTINGS, type AppSettings } from "@/lib/schema/settings";
 
-/** 設定ファイルの保存先（~/.config/ai-review-dashboard）。 */
+/** Destination for the settings file (~/.config/ai-review-dashboard). */
 const CONFIG_DIR = join(homedir(), ".config", "ai-review-dashboard");
 const SETTINGS_PATH = join(CONFIG_DIR, "settings.json");
 
@@ -11,7 +11,7 @@ async function ensureDir(): Promise<void> {
   await mkdir(CONFIG_DIR, { recursive: true });
 }
 
-/** 設定を読み込む。未作成・壊れている場合はデフォルトを返す。 */
+/** Load settings. Returns defaults if not yet created or corrupted. */
 export async function loadSettings(): Promise<AppSettings> {
   try {
     const raw = await readFile(SETTINGS_PATH, "utf8");
@@ -19,14 +19,14 @@ export async function loadSettings(): Promise<AppSettings> {
     if (parsed.success) {
       return parsed.data;
     }
-    // 一部欠損などはデフォルトでマージ。
+    // Merge with defaults to fill in any missing fields.
     return { ...DEFAULT_SETTINGS, ...(JSON.parse(raw) as Partial<AppSettings>) };
   } catch {
     return DEFAULT_SETTINGS;
   }
 }
 
-/** 設定を検証して保存する。 */
+/** Validate and save settings. */
 export async function saveSettings(input: unknown): Promise<AppSettings> {
   const settings = appSettingsSchema.parse(input);
   await ensureDir();

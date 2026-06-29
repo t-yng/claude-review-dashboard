@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { codeToHtml } from "shiki";
 import { cn } from "@/lib/utils";
 
-/** ファイル拡張子から shiki の言語を推定する。 */
+/** Infer the shiki language from the file extension. */
 function langFromPath(path: string): string {
   const ext = path.split(".").pop()?.toLowerCase() ?? "";
   const map: Record<string, string> = {
@@ -51,7 +51,7 @@ interface CodeBlockProps {
   className?: string;
 }
 
-/** シンタックスハイライト付きコードスニペット。 */
+/** Code snippet with syntax highlighting. */
 export function CodeBlock({ code, filePath, className }: CodeBlockProps) {
   const [html, setHtml] = useState<string | null>(null);
 

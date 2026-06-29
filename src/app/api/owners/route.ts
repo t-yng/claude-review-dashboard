@@ -4,7 +4,7 @@ import { errorResponse } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
 
-/** GET /api/owners — リポジトリのオーナー候補（自分 + 所属組織） */
+/** GET /api/owners — candidate repository owners (yourself + your organizations) */
 export async function GET() {
   try {
     const owners = await listOwners();

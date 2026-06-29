@@ -1,9 +1,9 @@
 @import "tailwindcss";
 
 /*
- * AI Review Dashboard — ダークテーマ固定のカラートークン。
- * ベースは深いニュートラルグレー(zinc系)、アクセントは emerald 1 色。
- * 重要度は critical=赤 / warning=琥珀 / info=青 で区別する。
+ * AI Review Dashboard — color tokens fixed to a dark theme.
+ * The base is a deep neutral gray (zinc family), with a single emerald accent.
+ * Severity is distinguished as critical=red / warning=amber / info=blue.
  */
 @theme {
   --color-background: #0a0a0b;
@@ -50,7 +50,7 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-/* スクロールバー（ダーク） */
+/* Scrollbar (dark) */
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
@@ -67,7 +67,7 @@ body {
   background: var(--color-subtle);
 }
 
-/* shiki のコードブロックをカード背景に馴染ませる */
+/* Blend shiki code blocks into the card background */
 .shiki {
   background-color: transparent !important;
   font-size: 0.8125rem;

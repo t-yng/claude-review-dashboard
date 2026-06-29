@@ -4,7 +4,7 @@ import { errorResponse } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
 
-/** GET /api/settings — AppSettings 取得 */
+/** GET /api/settings — fetch AppSettings */
 export async function GET() {
   try {
     const settings = await loadSettings();
@@ -14,7 +14,7 @@ export async function GET() {
   }
 }
 
-/** PUT /api/settings — AppSettings 更新 */
+/** PUT /api/settings — update AppSettings */
 export async function PUT(req: Request) {
   try {
     const settings = await saveSettings(await req.json());

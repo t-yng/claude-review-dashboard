@@ -1,6 +1,6 @@
 import { Sidebar } from "@/components/app/sidebar";
 
-/** ダッシュボードのレイアウト枠（サイドバー + コンテンツ）。 */
+/** Dashboard layout frame (sidebar + content). */
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex h-screen overflow-hidden">

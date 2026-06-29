@@ -4,7 +4,7 @@ import { errorResponse, type RouteParams } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
 
-/** GET /api/repos/{owner}/{repo}/pulls/{number} — PR 詳細（diff・headSha 含む） */
+/** GET /api/repos/{owner}/{repo}/pulls/{number} — PR details (including diff and headSha) */
 export async function GET(
   _req: Request,
   { params }: RouteParams<{ owner: string; repo: string; number: string }>,

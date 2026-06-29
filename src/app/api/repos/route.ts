@@ -4,7 +4,7 @@ import { errorResponse } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
 
-/** GET /api/repos?owner=foo — アクセス可能なリポジトリ一覧（owner で絞り込み可） */
+/** GET /api/repos?owner=foo — list of accessible repositories (optionally filtered by owner) */
 export async function GET(request: Request) {
   try {
     const owner = new URL(request.url).searchParams.get("owner") ?? undefined;

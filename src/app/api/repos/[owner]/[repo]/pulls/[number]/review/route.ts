@@ -10,9 +10,9 @@ export const maxDuration = 600;
 
 /**
  * POST /api/repos/{owner}/{repo}/pulls/{number}/review
- * レビューを実行し ReviewSession を返す。
- * - `Accept: text/event-stream` の場合は進捗を SSE でストリーミングし、最後に session を流す。
- * - それ以外は完了後に JSON 一括返却。
+ * Run a review and return a ReviewSession.
+ * - With `Accept: text/event-stream`, streams progress over SSE and emits the session last.
+ * - Otherwise, returns the JSON in one response after completion.
  */
 export async function POST(
   req: Request,
@@ -39,7 +39,7 @@ export async function POST(
   }
 }
 
-/** SSE で進捗イベントを流しながらレビューを実行する。 */
+/** Run the review while streaming progress events over SSE. */
 function streamReview(owner: string, repo: string, prNumber: number): Response {
   const encoder = new TextEncoder();
 

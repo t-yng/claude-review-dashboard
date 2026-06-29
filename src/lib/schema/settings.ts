@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-/** 既定のレビュープロンプト（観点・重視点）。F-6 のデフォルト同梱用。 */
+/** Default review prompt (perspective / focus points). Bundled as the F-6 default. */
 export const DEFAULT_REVIEW_PROMPT = `You are a senior code reviewer ensuring high standards of code quality and security.
 
 Review checklist:
@@ -32,7 +32,7 @@ Please feedback in Japanese.`;
 
 export const DEFAULT_MODEL = "claude-opus-4-8";
 
-/** ユーザー設定。 */
+/** User settings. */
 export const appSettingsSchema = z.object({
   reviewPrompt: z.string().min(1),
   model: z.string().min(1),
@@ -44,7 +44,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   model: DEFAULT_MODEL,
 };
 
-/** 設定画面のモデル選択肢。 */
+/** Model options shown on the settings screen. */
 export const MODEL_OPTIONS: { value: string; label: string }[] = [
   { value: "claude-opus-4-8", label: "Claude Opus 4.8" },
   { value: "claude-sonnet-4-6", label: "Claude Sonnet 4.6" },

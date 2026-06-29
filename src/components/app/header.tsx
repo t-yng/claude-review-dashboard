@@ -1,6 +1,6 @@
 import { AuthStatusIndicator } from "./auth-status";
 
-/** 上部ヘッダー。パンくず的なタイトルと認証状態を表示する。 */
+/** Top header. Shows a breadcrumb-like title and the authentication status. */
 export function Header({ title, subtitle }: { title?: string; subtitle?: React.ReactNode }) {
   return (
     <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-border bg-background/80 px-6 backdrop-blur">

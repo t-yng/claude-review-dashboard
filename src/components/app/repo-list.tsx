@@ -11,26 +11,26 @@ import { Select } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorState } from "@/components/app/states";
 
-/** 選択したオーナーを保持する localStorage のキー。 */
+/** localStorage key that holds the selected owner. */
 const OWNER_STORAGE_KEY = "repo-list:selected-owner";
 
-/** リポジトリ一覧（オーナー選択・検索・絞り込み付き）。 */
+/** Repository list (with owner selection, search, and filtering). */
 export function RepoList() {
   const t = useTranslations("repos");
   const [q, setQ] = useState("");
   const [owner, setOwner] = useState("");
-  // localStorage からの復元が完了したかどうか。完了前は保存しない。
+  // Whether restoration from localStorage has finished. Don't save before it does.
   const [restored, setRestored] = useState(false);
 
-  // マウント後に前回選択したオーナーを localStorage から復元する。
-  // （ハイドレーションのミスマッチを避けるため初期描画後に行う）
+  // After mount, restore the previously selected owner from localStorage.
+  // (Done after the initial render to avoid a hydration mismatch.)
   useEffect(() => {
     const saved = window.localStorage.getItem(OWNER_STORAGE_KEY);
     if (saved) setOwner(saved);
     setRestored(true);
   }, []);
 
-  // オーナーの選択が変わるたびに localStorage へ保存する。
+  // Save to localStorage whenever the owner selection changes.
   useEffect(() => {
     if (!restored) return;
     if (owner) {

@@ -14,7 +14,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
-/** AppSettings の編集フォーム。 */
+/** Edit form for AppSettings. */
 export function SettingsForm() {
   const t = useTranslations("settingsForm");
   const { data, isLoading } = useQuery({ queryKey: ["settings"], queryFn: api.getSettings });

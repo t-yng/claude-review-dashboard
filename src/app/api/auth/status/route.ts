@@ -4,7 +4,7 @@ import { errorResponse } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
 
-/** GET /api/auth/status — gh ログイン状態・ユーザー名 */
+/** GET /api/auth/status — gh login state and username */
 export async function GET() {
   try {
     const status = await getAuthStatus();
