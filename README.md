@@ -58,16 +58,11 @@ Open <http://localhost:3000> in your browser.
 5. **Apply to the PR** — "Apply N selected to PR" batch-posts them as GitHub inline review comments.
 6. **Settings** — edit and save the review prompt and model from "Settings" in the sidebar (applied to the next review).
 
-## Scripts
+## Where data is stored
 
-| Command | Description |
-|---------|-------------|
-| `npm run dev` | Start the dev server |
-| `npm run build` | Production build |
-| `npm run start` | Start the production server |
-| `npm run lint` | ESLint |
-| `npm run format` | Prettier |
-| `npm run typecheck` | Type check |
+- `~/.config/claude-review-dashboard/settings.json` — review prompt and model settings
+- `~/.config/claude-review-dashboard/sessions/<id>.json` — review run history
+- `~/.config/claude-review-dashboard/logs/` — raw AI output logs (for debugging)
 
 ## Tech stack
 
@@ -79,31 +74,3 @@ Open <http://localhost:3000> in your browser.
 - **zod** (structured validation of AI output)
 - **shiki** (syntax highlighting for code snippets)
 - GitHub integration via the `gh` CLI through `child_process` (tokens fetched on demand, never stored)
-
-## Where data is stored
-
-- `~/.config/claude-review-dashboard/settings.json` — review prompt and model settings
-- `~/.config/claude-review-dashboard/sessions/<id>.json` — review run history
-- `~/.config/claude-review-dashboard/logs/` — raw AI output logs (for debugging)
-
-## Project structure
-
-```
-src/
-├─ app/
-│  ├─ (dashboard)/            # Screens (repos / PRs / review / settings)
-│  └─ api/                    # Route Handlers
-├─ components/
-│  ├─ ui/                     # shadcn/ui-style primitives
-│  └─ app/                    # Screen-specific components
-└─ lib/
-   ├─ github/                 # gh CLI wrapper, diff parsing, review submission
-   ├─ review/                 # Agent SDK integration, prompt, JSON extraction
-   ├─ settings/               # Settings & session file I/O
-   ├─ schema/                 # zod schemas & types
-   └─ client/                 # Client-side API / utilities
-```
-
-## Design doc
-
-See [`docs/development-design.md`](./docs/development-design.md) for details.
