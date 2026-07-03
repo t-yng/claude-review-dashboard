@@ -1,10 +1,10 @@
 {
   "metadata": {
-    "title": "AI Review Dashboard",
+    "title": "Claude Review Dashboard",
     "description": "AI に PR をレビューさせ、価値ある指摘だけを GitHub へ反映するローカルツール"
   },
   "common": {
-    "appName": "AI Review Dashboard",
+    "appName": "Claude Review Dashboard",
     "retry": "再試行",
     "open": "開く"
   },

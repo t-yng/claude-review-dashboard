@@ -12,7 +12,7 @@ AI-driven code review sometimes leaves inappropriate or misleading comments. Jun
 
 At the same time, AI-assisted coding has dramatically increased development speed, and manually reviewing everything by hand has become extremely time-consuming.
 
-What I wanted was a solution that lets me **adopt AI code review semi-automatically while a human picks out only the useful findings** and iterate on that loop quickly. AI Review Dashboard is built to optimize exactly this cycle: **let the AI review → let a human curate → apply the good ones back to the PR.**
+What I wanted was a solution that lets me **adopt AI code review semi-automatically while a human picks out only the useful findings** and iterate on that loop quickly. Claude Review Dashboard is built to optimize exactly this cycle: **let the Claude Review → let a human curate → apply the good ones back to the PR.**
 
 ## Features
 

@@ -3,7 +3,7 @@ Build an application that has an AI perform code review on a PR, lets the user c
 
 ## Background
 AI code review is convenient, but it still sometimes generates unnecessary review comments.
-Even when an AI reviews a PR from a junior engineer, the reviewee cannot judge whether the review is good or bad. Because of that, a senior engineer still has to review it, but reviewing everything in detail is a heavy burden — so I want to build an app that semi-automates that part.
+Even when an Claude Reviews a PR from a junior engineer, the reviewee cannot judge whether the review is good or bad. Because of that, a senior engineer still has to review it, but reviewing everything in detail is a heavy burden — so I want to build an app that semi-automates that part.
 
 ## Design
 - Dark theme

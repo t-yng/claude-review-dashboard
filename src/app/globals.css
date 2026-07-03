@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 /*
- * AI Review Dashboard — color tokens fixed to a dark theme.
+ * Claude Review Dashboard — color tokens fixed to a dark theme.
  * The base is a deep neutral gray (zinc family), with a single emerald accent.
  * Severity is distinguished as critical=red / warning=amber / info=blue.
  */

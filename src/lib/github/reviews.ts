@@ -35,7 +35,7 @@ function toComment(item: ReviewItem): ReviewCommentInput {
 /** Prepend a severity/category heading to the finding body. */
 function formatBody(item: ReviewItem): string {
   const badge = `**[${item.severity.toUpperCase()} / ${item.category}] ${item.title}**`;
-  return `${badge}\n\n${item.body}\n\n<sub>🤖 AI Review Dashboard</sub>`;
+  return `${badge}\n\n${item.body}\n\n<sub>🤖 Claude Review Dashboard</sub>`;
 }
 
 /**

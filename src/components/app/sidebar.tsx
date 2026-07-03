@@ -34,7 +34,7 @@ export function Sidebar() {
           <Sparkles className="size-4" />
         </div>
         <div className="flex flex-col leading-tight">
-          <span className="text-sm font-semibold">AI Review</span>
+          <span className="text-sm font-semibold">Claude Review</span>
           <span className="text-xs text-subtle">Dashboard</span>
         </div>
       </div>

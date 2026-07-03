@@ -1,4 +1,4 @@
-# AI Review Dashboard Development Design Document
+# Claude Review Dashboard Development Design Document
 
 ## 1. Product Overview
 
@@ -6,8 +6,8 @@
 A local web application that has an AI perform code review on Pull Requests, lets the **user cherry-pick only the valuable findings** from the multiple generated review comments, and applies only the selected ones to the GitHub PR as inline review comments.
 
 ### 1.2 Problem to Solve
-- AI review is convenient, but it also generates unnecessary or off-target findings.
-- Even when an AI reviews a junior's PR, the reviewee cannot judge whether the findings are good or bad.
+- Claude Review is convenient, but it also generates unnecessary or off-target findings.
+- Even when an Claude Reviews a junior's PR, the reviewee cannot judge whether the findings are good or bad.
 - In the end a senior still has to review in detail, which is a heavy burden.
 - → Create a state where **the senior only has to "pick from the AI's findings"**, semi-automating the review process.
 
@@ -102,7 +102,7 @@ A local web application that has an AI perform code review on Pull Requests, let
 - The list is obtained via `gh` or Octokit.
 
 ### F-3. Run Review
-- Start the AI review with the "Run review" button on the PR detail screen.
+- Start the Claude Review with the "Run review" button on the PR detail screen.
 - While running, show progress (checkout → analysis → review generation).
 - Progress may be reflected to the client via SSE etc. using the SDK's streaming messages (optional).
 
@@ -171,7 +171,7 @@ interface AppSettings {
 
 ---
 
-## 7. Implementation Guidelines for AI Review Integration
+## 7. Implementation Guidelines for Claude Review Integration
 
 ### 7.1 Example query() Call
 ```ts
@@ -355,7 +355,7 @@ claude-review-dashboard/
 
 - [x] When started with `gh` authenticated, the logged-in username and repository list are shown.
 - [x] Selecting a repository shows the open PR list.
-- [x] Selecting a PR and pressing "Run review" runs the AI review and shows findings in a list with their target code.
+- [x] Selecting a PR and pressing "Run review" runs the Claude Review and shows findings in a list with their target code.
 - [x] Findings can be cherry-picked (checked), and only the selected ones are posted to the GitHub PR as inline comments.
 - [x] Posted lines appear on the correct target line on GitHub.
 - [x] The review prompt can be edited and saved, and is reflected in the next review.

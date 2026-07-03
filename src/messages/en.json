@@ -1,10 +1,10 @@
 {
   "metadata": {
-    "title": "AI Review Dashboard",
-    "description": "A local tool that lets AI review your PRs and apply only the valuable findings to GitHub."
+    "title": "Claude Review Dashboard",
+    "description": "A local tool that lets Claude review your PRs and apply only the valuable findings to GitHub."
   },
   "common": {
-    "appName": "AI Review Dashboard",
+    "appName": "Claude Review Dashboard",
     "retry": "Retry",
     "open": "Open"
   },
@@ -77,7 +77,7 @@
     "applied": "Applied"
   },
   "progress": {
-    "running": "Running AI review…",
+    "running": "Running Claude review…",
     "aborted": "Review was interrupted",
     "phase": {
       "checkout": "Fetch PR",
