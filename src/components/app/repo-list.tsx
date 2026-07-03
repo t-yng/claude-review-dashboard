@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
@@ -14,31 +14,40 @@ import { ErrorState } from "@/components/app/states";
 /** localStorage key that holds the selected owner. */
 const OWNER_STORAGE_KEY = "repo-list:selected-owner";
 
+/** Same-tab subscribers, since the `storage` event only fires in other tabs. */
+const ownerListeners = new Set<() => void>();
+
+function subscribeOwner(onChange: () => void) {
+  ownerListeners.add(onChange);
+  window.addEventListener("storage", onChange);
+  return () => {
+    ownerListeners.delete(onChange);
+    window.removeEventListener("storage", onChange);
+  };
+}
+
+function readOwner() {
+  return window.localStorage.getItem(OWNER_STORAGE_KEY) ?? "";
+}
+
+function writeOwner(owner: string) {
+  if (owner) {
+    window.localStorage.setItem(OWNER_STORAGE_KEY, owner);
+  } else {
+    window.localStorage.removeItem(OWNER_STORAGE_KEY);
+  }
+  // Notify same-tab subscribers; the `storage` event handles other tabs.
+  for (const onChange of ownerListeners) onChange();
+}
+
 /** Repository list (with owner selection, search, and filtering). */
 export function RepoList() {
   const t = useTranslations("repos");
   const [q, setQ] = useState("");
-  const [owner, setOwner] = useState("");
-  // Whether restoration from localStorage has finished. Don't save before it does.
-  const [restored, setRestored] = useState(false);
-
-  // After mount, restore the previously selected owner from localStorage.
-  // (Done after the initial render to avoid a hydration mismatch.)
-  useEffect(() => {
-    const saved = window.localStorage.getItem(OWNER_STORAGE_KEY);
-    if (saved) setOwner(saved);
-    setRestored(true);
-  }, []);
-
-  // Save to localStorage whenever the owner selection changes.
-  useEffect(() => {
-    if (!restored) return;
-    if (owner) {
-      window.localStorage.setItem(OWNER_STORAGE_KEY, owner);
-    } else {
-      window.localStorage.removeItem(OWNER_STORAGE_KEY);
-    }
-  }, [owner, restored]);
+  // The selected owner is persisted in localStorage. The server snapshot is
+  // empty so the initial client render matches and avoids a hydration mismatch.
+  const owner = useSyncExternalStore(subscribeOwner, readOwner, () => "");
+  const setOwner = writeOwner;
 
   const ownersQuery = useQuery({
     queryKey: ["owners"],

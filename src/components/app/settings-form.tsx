@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Save, RotateCcw } from "lucide-react";
 import { api } from "@/lib/client/api";
+import type { AppSettings } from "@/lib/schema/settings";
 import { DEFAULT_REVIEW_PROMPT, MODEL_OPTIONS } from "@/lib/schema/settings";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -16,19 +17,28 @@ import { cn } from "@/lib/utils";
 
 /** Edit form for AppSettings. */
 export function SettingsForm() {
-  const t = useTranslations("settingsForm");
   const { data, isLoading } = useQuery({ queryKey: ["settings"], queryFn: api.getSettings });
 
-  const [prompt, setPrompt] = useState("");
-  const [model, setModel] = useState(MODEL_OPTIONS[0].value);
-  const [saving, setSaving] = useState(false);
+  if (isLoading || !data) {
+    return (
+      <div className="space-y-4">
+        <Skeleton className="h-40 w-full" />
+        <Skeleton className="h-64 w-full" />
+      </div>
+    );
+  }
 
-  useEffect(() => {
-    if (data) {
-      setPrompt(data.reviewPrompt);
-      setModel(data.model);
-    }
-  }, [data]);
+  // Remount when the loaded settings change so the editable state re-initializes.
+  return <SettingsFormFields key={`${data.model}:${data.reviewPrompt}`} settings={data} />;
+}
+
+/** The editable fields, seeded from the loaded settings. */
+function SettingsFormFields({ settings }: { settings: AppSettings }) {
+  const t = useTranslations("settingsForm");
+
+  const [prompt, setPrompt] = useState(settings.reviewPrompt);
+  const [model, setModel] = useState(settings.model);
+  const [saving, setSaving] = useState(false);
 
   async function handleSave() {
     setSaving(true);
@@ -41,15 +51,6 @@ export function SettingsForm() {
     } finally {
       setSaving(false);
     }
-  }
-
-  if (isLoading) {
-    return (
-      <div className="space-y-4">
-        <Skeleton className="h-40 w-full" />
-        <Skeleton className="h-64 w-full" />
-      </div>
-    );
   }
 
   return (
