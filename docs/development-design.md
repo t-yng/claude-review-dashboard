@@ -43,7 +43,7 @@ A local web application that has an AI perform code review on Pull Requests, let
 | AI integration | **`@anthropic-ai/claude-agent-sdk`** |
 | GitHub integration | `gh` CLI (`child_process`) + `@octokit/rest` as needed (tokens via `gh auth token`) |
 | Validation | **zod** (essential for structured validation of AI output) |
-| Local persistence | Files (JSON under `~/.config/ai-review-dashboard/`) |
+| Local persistence | Files (JSON under `~/.config/claude-review-dashboard/`) |
 | Design | Dark-themed dashboard. Simple / stylish. |
 
 > When implementing the UI, using the `ui-ux-pro-max` skill is recommended (design support for dark-themed dashboards).
@@ -166,8 +166,8 @@ interface AppSettings {
 ```
 
 ### Persistence Locations
-- `~/.config/ai-review-dashboard/settings.json` … `AppSettings`
-- `~/.config/ai-review-dashboard/sessions/<sessionId>.json` … `ReviewSession` (history, optional)
+- `~/.config/claude-review-dashboard/settings.json` … `AppSettings`
+- `~/.config/claude-review-dashboard/sessions/<sessionId>.json` … `ReviewSession` (history, optional)
 
 ---
 

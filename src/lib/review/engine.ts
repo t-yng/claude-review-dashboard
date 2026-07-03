@@ -79,7 +79,7 @@ export async function runReview(params: RunReviewParams): Promise<ReviewSession>
       throw new Error(
         "AI 出力から有効なレビュー JSON を抽出できませんでした。" +
           "プロンプトやモデルを変えて再実行してください。" +
-          "（AI の生出力は ~/.config/ai-review-dashboard/logs/ に保存しました）",
+          "（AI の生出力は ~/.config/claude-review-dashboard/logs/ に保存しました）",
       );
     }
 

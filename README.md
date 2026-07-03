@@ -84,9 +84,9 @@ Open <http://localhost:3000> in your browser.
 
 ## Where data is stored
 
-- `~/.config/ai-review-dashboard/settings.json` — review prompt and model settings
-- `~/.config/ai-review-dashboard/sessions/<id>.json` — review run history
-- `~/.config/ai-review-dashboard/logs/` — raw AI output logs (for debugging)
+- `~/.config/claude-review-dashboard/settings.json` — review prompt and model settings
+- `~/.config/claude-review-dashboard/sessions/<id>.json` — review run history
+- `~/.config/claude-review-dashboard/logs/` — raw AI output logs (for debugging)
 
 ## Project structure
 

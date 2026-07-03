@@ -2,8 +2,8 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import { join } from "node:path";
 
-/** Destination for AI output logs (~/.config/ai-review-dashboard/logs). */
-const LOGS_DIR = join(homedir(), ".config", "ai-review-dashboard", "logs");
+/** Destination for AI output logs (~/.config/claude-review-dashboard/logs). */
+const LOGS_DIR = join(homedir(), ".config", "claude-review-dashboard", "logs");
 
 export interface ReviewLogContext {
   owner: string;

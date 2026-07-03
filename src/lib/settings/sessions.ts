@@ -3,8 +3,8 @@ import { homedir } from "node:os";
 import { join } from "node:path";
 import { reviewSessionSchema, type ReviewSession } from "@/lib/schema/review";
 
-/** Destination for review history (~/.config/ai-review-dashboard/sessions). */
-const SESSIONS_DIR = join(homedir(), ".config", "ai-review-dashboard", "sessions");
+/** Destination for review history (~/.config/claude-review-dashboard/sessions). */
+const SESSIONS_DIR = join(homedir(), ".config", "claude-review-dashboard", "sessions");
 
 async function ensureDir(): Promise<void> {
   await mkdir(SESSIONS_DIR, { recursive: true });

@@ -3,8 +3,8 @@ import { homedir } from "node:os";
 import { join } from "node:path";
 import { appSettingsSchema, DEFAULT_SETTINGS, type AppSettings } from "@/lib/schema/settings";
 
-/** Destination for the settings file (~/.config/ai-review-dashboard). */
-const CONFIG_DIR = join(homedir(), ".config", "ai-review-dashboard");
+/** Destination for the settings file (~/.config/claude-review-dashboard). */
+const CONFIG_DIR = join(homedir(), ".config", "claude-review-dashboard");
 const SETTINGS_PATH = join(CONFIG_DIR, "settings.json");
 
 async function ensureDir(): Promise<void> {
