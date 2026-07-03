@@ -73,8 +73,8 @@ Open <http://localhost:3000> in your browser.
 
 ## Tech stack
 
-- **Next.js 15** (App Router) / TypeScript / React 19
-- **Tailwind CSS v4** + shadcn/ui-style components / lucide-react
+- **Next.js** (App Router) / TypeScript
+- **Tailwind CSS** + shadcn/ui-style components / lucide-react
 - **TanStack Query** (client-side data fetching)
 - **next-intl** (i18n)
 - **@anthropic-ai/claude-agent-sdk** (runs reviews reusing Claude Code auth)
