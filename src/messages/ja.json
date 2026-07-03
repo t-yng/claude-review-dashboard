@@ -62,6 +62,8 @@
     "idleTitle": "まだレビューを実行していません",
     "idleDescription": "「レビュー実行」を押すと AI が PR を解析し、指摘を生成します。",
     "invalidReason": "{filePath}:{line} は PR の diff に含まれないため、インラインコメントを投稿できません。",
+    "invalidReasonReversed": "{filePath}: 開始行が終了行より後になっているため、インラインコメントを投稿できません。",
+    "invalidReasonMultiHunk": "{filePath}:{line} は複数の diff hunk にまたがっているため、インラインコメントは単一の hunk 内に収める必要があります。",
     "toast": {
       "runFailedTitle": "レビューに失敗しました",
       "submittedTitle": "{count} 件をレビューコメントとして投稿しました",

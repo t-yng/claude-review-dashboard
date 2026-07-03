@@ -62,6 +62,8 @@
     "idleTitle": "No review run yet",
     "idleDescription": "Press “Run review” to have the AI analyze the PR and generate findings.",
     "invalidReason": "{filePath}:{line} is not part of the PR diff, so an inline comment cannot be posted.",
+    "invalidReasonReversed": "{filePath}: the start line comes after the end line, so an inline comment cannot be posted.",
+    "invalidReasonMultiHunk": "{filePath}:{line} spans multiple diff hunks; an inline comment must stay within a single hunk.",
     "toast": {
       "runFailedTitle": "Review failed",
       "submittedTitle": "Posted {count} review comments",
