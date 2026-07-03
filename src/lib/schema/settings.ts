@@ -27,8 +27,7 @@ Security checklist:
 - Error responses do not leak internal implementation details or stack traces to clients
 - Rate limiting or abuse prevention is considered for sensitive endpoints
 
-Include specific examples of how to fix issues.
-Please feedback in Japanese.`;
+Include specific examples of how to fix issues.`;
 
 export const DEFAULT_MODEL = "claude-opus-4-8";
 

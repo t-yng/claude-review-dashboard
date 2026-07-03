@@ -34,11 +34,11 @@ export async function runReview(params: RunReviewParams): Promise<ReviewSession>
   const { owner, repo, pr, settings, onProgress } = params;
   const emit = (p: ReviewProgress) => onProgress?.(p);
 
-  emit({ phase: "checkout", message: "PR を一時ディレクトリへ取得しています…" });
+  emit({ phase: "checkout", message: "Fetching the PR into a temporary directory…" });
   const checkout = await checkoutPr(owner, repo, pr.number);
 
   try {
-    emit({ phase: "generating", message: "リポジトリを解析しレビューを生成しています…" });
+    emit({ phase: "generating", message: "Analyzing the repository and generating the review…" });
     const prompt = buildReviewPrompt(pr, settings.reviewPrompt);
 
     let text = await runQuery(prompt, settings.model, checkout.dir, emit);
@@ -56,7 +56,7 @@ export async function runReview(params: RunReviewParams): Promise<ReviewSession>
 
     if (items === null) {
       // Retry just once (re-instruct it to return JSON only).
-      emit({ phase: "generating", message: "出力の解析に失敗。再試行しています…" });
+      emit({ phase: "generating", message: "Failed to parse the output. Retrying…" });
       text = await runQuery(
         `${prompt}\n\n${JSON_ONLY_RETRY_PROMPT}`,
         settings.model,
@@ -77,9 +77,9 @@ export async function runReview(params: RunReviewParams): Promise<ReviewSession>
 
     if (items === null) {
       throw new Error(
-        "AI 出力から有効なレビュー JSON を抽出できませんでした。" +
-          "プロンプトやモデルを変えて再実行してください。" +
-          "（AI の生出力は ~/.config/claude-review-dashboard/logs/ に保存しました）",
+        "Could not extract valid review JSON from the AI output. " +
+          "Try changing the prompt or model and run again. " +
+          "(The AI's raw output was saved to ~/.config/claude-review-dashboard/logs/)",
       );
     }
 
@@ -94,7 +94,7 @@ export async function runReview(params: RunReviewParams): Promise<ReviewSession>
       createdAt: new Date().toISOString(),
     };
 
-    emit({ phase: "done", message: `${session.items.length} 件の指摘を生成しました。` });
+    emit({ phase: "done", message: `Generated ${session.items.length} findings.` });
     return session;
   } finally {
     await checkout.cleanup();
@@ -123,7 +123,7 @@ async function runQuery(
 
   for await (const message of result) {
     if (message.type === "assistant") {
-      emit({ phase: "generating", message: "Claude がレビューを記述しています…" });
+      emit({ phase: "generating", message: "Claude is writing the review…" });
     } else if (message.type === "result") {
       if (message.subtype === "success") {
         finalText = message.result;
@@ -132,7 +132,7 @@ async function runQuery(
           "errors" in message && message.errors?.length
             ? message.errors.join("; ")
             : message.subtype;
-        throw new Error(`レビュー実行に失敗しました: ${detail}`);
+        throw new Error(`Review run failed: ${detail}`);
       }
     }
   }

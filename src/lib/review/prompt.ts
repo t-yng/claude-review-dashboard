@@ -13,59 +13,59 @@ export function buildReviewPrompt(pr: PullRequestDetail, userPrompt: string): st
 
 ---
 
-# レビュー対象の Pull Request
+# Pull Request under review
 
-リポジトリの全ファイルは作業ディレクトリから Read / Grep / Glob ツールで参照できます。必要に応じて周辺コードを読み、diff の変更を中心にレビューしてください。
+You can access every file in the repository from the working directory via the Read / Grep / Glob tools. Read the surrounding code as needed, and focus the review on the changes in the diff.
 
-## タイトル
+## Title
 ${pr.title}
 
-## 説明
-${pr.body?.trim() || "(説明なし)"}
+## Description
+${pr.body?.trim() || "(no description)"}
 
-## 変更差分 (unified diff)
+## Diff (unified diff)
 \`\`\`diff
 ${truncateDiff(pr.diff)}
 \`\`\`
 
 ---
 
-# 出力フォーマット（厳守）
+# Output format (strict)
 
-レビュー結果を **下記スキーマの JSON 配列のみ** で出力してください。配列以外のテキスト・前置き・後置きは一切出力しないこと。指摘が無い場合は空配列 \`[]\` を返すこと。
+Output the review results as **only a JSON array matching the schema below**. Do not output any text, preamble, or postscript other than the array. If there are no findings, return an empty array \`[]\`.
 
 \`\`\`json
 [
   {
-    "filePath": "string  // リポジトリルートからの相対パス。diff の +++ b/ のパスに一致させる",
-    "startLine": 0,        // 指摘対象の開始行（diff の新ファイル側=RIGHT の行番号）
-    "endLine": 0,          // 指摘対象の終了行（単一行なら startLine と同じ）
-    "side": "RIGHT",       // 通常は RIGHT 固定
+    "filePath": "string  // Path relative to the repository root. Must match the +++ b/ path in the diff",
+    "startLine": 0,        // Start line of the finding (line number on the new-file side = RIGHT of the diff)
+    "endLine": 0,          // End line of the finding (same as startLine for a single line)
+    "side": "RIGHT",       // Normally fixed to RIGHT
     "severity": "info | warning | critical",
-    "category": "bug | performance | security | style | maintainability などの短い分類",
-    "title": "string  // 指摘の短い見出し",
-    "body": "string  // 指摘本文（Markdown 可）。なぜ問題か・どう直すべきかを具体的に",
-    "codeSnippet": "string  // 対象コードの抜粋（表示用、数行程度）"
+    "category": "A short classification such as bug | performance | security | style | maintainability",
+    "title": "string  // A short heading for the finding",
+    "body": "string  // The finding body (Markdown allowed). Explain concretely why it is a problem and how to fix it",
+    "codeSnippet": "string  // An excerpt of the target code (for display, a few lines)"
   }
 ]
 \`\`\`
 
-## 重要な制約
-- **行番号は必ず diff に現れる新ファイル側(RIGHT)の行番号** を指定すること。diff に含まれない行を指定しないこと。
-- 価値の低い・重複・好み次第の指摘は出さないこと。明確に意味のある指摘のみ。
-- **\`title\` と \`body\` は必ず日本語で記述すること。** 識別子・コード・固有名詞などはそのまま英語で構わないが、説明文は日本語で書くこと。
-- JSON 配列以外は絶対に出力しないこと。`;
+## Important constraints
+- **Line numbers must always be line numbers on the new-file side (RIGHT) that appear in the diff.** Do not specify lines that are not included in the diff.
+- Do not produce low-value, duplicate, or purely preferential findings. Only clearly meaningful findings.
+- **\`title\` and \`body\` MUST be written in Japanese.** Identifiers, code, and proper nouns may stay in English, but the explanatory text must be written in Japanese.
+- Never output anything other than the JSON array.`;
 }
 
 /** Short prompt used on retry to re-instruct it to "return JSON only". */
 export const JSON_ONLY_RETRY_PROMPT =
-  "前回の出力は指定の JSON 配列として解析できませんでした。説明や前置きを一切付けず、ReviewItem スキーマの JSON 配列のみを再出力してください。";
+  "The previous output could not be parsed as the specified JSON array. Without any explanation or preamble, output only a JSON array matching the ReviewItem schema again.";
 
 /** Simple cap to guard against token overflow when the diff is huge. */
 function truncateDiff(diff: string, maxChars = 120_000): string {
   if (diff.length <= maxChars) return diff;
   return (
     diff.slice(0, maxChars) +
-    `\n\n... (diff が大きいため ${diff.length - maxChars} 文字を省略しました)`
+    `\n\n... (the diff is large, so ${diff.length - maxChars} characters were omitted)`
   );
 }
