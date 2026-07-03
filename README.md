@@ -1,90 +1,111 @@
-# AI Review Dashboard
+# Claude Review Dashboard
 
-AI に Pull Request のコードレビューを実行させ、生成された複数の指摘から **価値あるものだけを取捨選択** して、選んだものだけを GitHub PR にインラインレビューコメントとして反映するためのローカル Web アプリケーションです。
+A local web app that lets **Claude** review your GitHub Pull Requests, then lets a human **cherry-pick only the valuable findings** and post them back to the PR as inline review comments.
 
-レビュアー（シニアエンジニア）が自分のローカル環境で起動し、ローカルの **Claude Code 認証**と **`gh` CLI 認証**をそのまま再利用します（API キーの別途設定は不要）。
+The reviewer (a senior engineer) runs it on their own machine and reuses their existing **Claude Code auth** and **`gh` CLI auth** as-is — no separate API key setup required.
 
-## 特徴
+![Review workspace](./docs/screenshots/review-workspace.png)
 
-- 🔍 GitHub のリポジトリ / オープン PR を一覧表示（検索・絞り込み）
-- ✨ ボタン 1 つで AI（Claude）が PR をレビューし、構造化された指摘を生成
-- 🎯 指摘を対象コード付きで一覧表示し、チェックで取捨選択
-- 💬 選んだ指摘だけを GitHub のインラインレビューコメントとして一括投稿
-- ⚙️ レビュー観点（プロンプト）とモデルをローカルで自由に調整
-- 🌙 ダークテーマのシンプルでスタイリッシュなダッシュボード
+## The problem I wanted to solve
 
-## 前提条件
+AI-driven code review sometimes leaves inappropriate or misleading comments. Junior engineers often lack the experience to judge whether a given finding is actually valid, so in the end a review by an experienced engineer is still required.
 
-| 必要なもの | 確認方法 |
-|------------|----------|
+At the same time, AI-assisted coding has dramatically increased development speed, and manually reviewing everything by hand has become extremely time-consuming.
+
+What I wanted was a solution that lets me **adopt AI code review semi-automatically while a human picks out only the useful findings** and iterate on that loop quickly. AI Review Dashboard is built to optimize exactly this cycle: **let the AI review → let a human curate → apply the good ones back to the PR.**
+
+## Features
+
+- 🔍 Browse GitHub repositories / open PRs with search and filtering
+- ✨ One-click AI (Claude) review of a PR that produces structured findings
+- 🎯 List findings with their target code and select/deselect them via checkboxes
+- 💬 Batch-post only the selected findings as GitHub inline review comments
+- ⚙️ Freely tune the review criteria (prompt) and model locally
+- 🌙 A clean, stylish dark-themed dashboard (with i18n via `next-intl`)
+
+## Technical highlights
+
+- **Reuses local Claude Code auth, not raw API keys** — reviews run through `@anthropic-ai/claude-agent-sdk` with the `claude_code` system-prompt preset, so the app inherits the user's existing Claude Code session instead of managing credentials itself.
+- **Agentic review over the real repo** — each run clones and checks out the PR into a temporary directory (`gh repo clone --depth 50` + `gh pr checkout --detach`) and gives Claude read-only tools (`Read`, `Grep`, `Glob`, `Bash`) so it can explore the whole codebase for context, not just the diff. The temp dir is always cleaned up in a `finally` block.
+- **Streaming progress over SSE** — checkout → generating → done/error phases are streamed to the client so long-running reviews show live progress.
+- **Robust JSON extraction + schema validation** — LLM output is parsed with a bracket-balancing scanner that ignores brackets inside string literals (so nested ``` fences in a finding's body don't break parsing), then validated with **zod**. On failure it retries once with a JSON-only re-prompt, and always persists the raw AI output to a log for debugging.
+- **Pre-submission diff-range validation** — the app parses the unified diff (`gh pr diff`) to know exactly which lines are commentable, and warns about findings that fall outside the diff before posting, avoiding GitHub API errors on inline comments.
+- **No token persistence** — GitHub access goes through the `gh` CLI via `child_process`; tokens are fetched on demand and never stored.
+
+## Prerequisites
+
+| Requirement | How to check |
+|-------------|--------------|
 | Node.js 20+ | `node -v` |
-| GitHub CLI (`gh`) と認証 | `gh auth status`（未ログインなら `gh auth login`） |
-| Claude Code の認証 | ローカルの `~/.claude` 認証を SDK が自動再利用します |
+| GitHub CLI (`gh`), authenticated | `gh auth status` (run `gh auth login` if needed) |
+| Claude Code auth | The SDK automatically reuses your local `~/.claude` auth |
 
-> レビュー実行時、対象リポジトリのコードが Claude に渡されます。社内ポリシー等に留意してください。
+> When a review runs, the target repository's code is sent to Claude. Keep your organization's policies in mind.
 
-## セットアップ
+## Setup
 
 ```bash
 npm install
 npm run dev
 ```
 
-ブラウザで <http://localhost:3000> を開きます。
+Open <http://localhost:3000> in your browser.
 
-## 使い方
+## Usage
 
-1. **リポジトリを選ぶ** — トップ画面でレビュー対象のリポジトリを選択。
-2. **PR を選ぶ** — オープンな PR 一覧から対象を選択。
-3. **レビュー実行** — 「レビュー実行」を押すと、PR を一時 checkout して AI がレビューを生成します（進捗が表示されます）。
-4. **取捨選択** — 生成された指摘をチェック（全選択 / 全解除あり）。diff 範囲外で投稿できない指摘は警告表示されます。
-5. **PR に反映** — 「選択した N 件を PR に反映」で、GitHub のインラインレビューコメントとして一括投稿します。
-6. **設定** — サイドバーの「設定」でレビュープロンプトとモデルを編集・保存できます（次回レビューに反映）。
+1. **Pick a repository** — select the repo to review on the top screen.
+2. **Pick a PR** — choose a target from the list of open PRs.
+3. **Run the review** — press "Run review"; the PR is checked out into a temp dir and the AI generates findings (progress is shown live).
+4. **Curate** — check the findings you want (select-all / deselect-all available). Findings that fall outside the diff and can't be posted are flagged with a warning.
+5. **Apply to the PR** — "Apply N selected to PR" batch-posts them as GitHub inline review comments.
+6. **Settings** — edit and save the review prompt and model from "Settings" in the sidebar (applied to the next review).
 
-## スクリプト
+## Scripts
 
-| コマンド | 説明 |
-|----------|------|
-| `npm run dev` | 開発サーバー起動 |
-| `npm run build` | 本番ビルド |
-| `npm run start` | 本番サーバー起動 |
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Start the dev server |
+| `npm run build` | Production build |
+| `npm run start` | Start the production server |
 | `npm run lint` | ESLint |
-| `npm run format` | Prettier 整形 |
-| `npm run typecheck` | 型チェック |
+| `npm run format` | Prettier |
+| `npm run typecheck` | Type check |
 
-## 技術スタック
+## Tech stack
 
-- **Next.js 15**（App Router）/ TypeScript / React 19
-- **Tailwind CSS v4** + shadcn/ui スタイルのコンポーネント / lucide-react
-- **TanStack Query**（クライアントデータ取得）
-- **@anthropic-ai/claude-agent-sdk**（Claude Code 認証を再利用したレビュー実行）
-- **zod**（AI 出力の構造化検証）
-- **shiki**（コードスニペットのシンタックスハイライト）
-- GitHub 連携は `gh` CLI を `child_process` 経由で利用（トークンは保存せず都度取得）
+- **Next.js 15** (App Router) / TypeScript / React 19
+- **Tailwind CSS v4** + shadcn/ui-style components / lucide-react
+- **TanStack Query** (client-side data fetching)
+- **next-intl** (i18n)
+- **@anthropic-ai/claude-agent-sdk** (runs reviews reusing Claude Code auth)
+- **zod** (structured validation of AI output)
+- **shiki** (syntax highlighting for code snippets)
+- GitHub integration via the `gh` CLI through `child_process` (tokens fetched on demand, never stored)
 
-## データの保存先
+## Where data is stored
 
-- `~/.config/ai-review-dashboard/settings.json` … レビュープロンプト・モデル設定
-- `~/.config/ai-review-dashboard/sessions/<id>.json` … レビュー実行履歴
+- `~/.config/ai-review-dashboard/settings.json` — review prompt and model settings
+- `~/.config/ai-review-dashboard/sessions/<id>.json` — review run history
+- `~/.config/ai-review-dashboard/logs/` — raw AI output logs (for debugging)
 
-## ディレクトリ構成
+## Project structure
 
 ```
 src/
 ├─ app/
-│  ├─ (dashboard)/            # 画面（リポジトリ / PR / レビュー / 設定）
+│  ├─ (dashboard)/            # Screens (repos / PRs / review / settings)
 │  └─ api/                    # Route Handlers
 ├─ components/
-│  ├─ ui/                     # shadcn/ui スタイルのプリミティブ
-│  └─ app/                    # 画面固有コンポーネント
+│  ├─ ui/                     # shadcn/ui-style primitives
+│  └─ app/                    # Screen-specific components
 └─ lib/
-   ├─ github/                 # gh CLI ラッパー・diff 解析・レビュー投稿
-   ├─ review/                 # Agent SDK 連携・プロンプト・JSON 抽出
-   ├─ settings/               # 設定・セッションのファイル I/O
-   ├─ schema/                 # zod スキーマ・型
-   └─ client/                 # クライアント側 API / ユーティリティ
+   ├─ github/                 # gh CLI wrapper, diff parsing, review submission
+   ├─ review/                 # Agent SDK integration, prompt, JSON extraction
+   ├─ settings/               # Settings & session file I/O
+   ├─ schema/                 # zod schemas & types
+   └─ client/                 # Client-side API / utilities
 ```
 
-## 設計ドキュメント
+## Design doc
 
-詳細は [`docs/development-design.md`](./docs/development-design.md) を参照してください。
+See [`docs/development-design.md`](./docs/development-design.md) for details.

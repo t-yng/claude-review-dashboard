@@ -1,29 +1,23 @@
-## やりたいこと
-AIにPRのコードレビューをしてもらい、レビューの一覧からユーザーが価値にあるレビューだけを取捨選択して、PRにレビューコメントとして反映するためのアプリケーションを開発する
+## Goal
+Build an application that has an AI perform code review on a PR, lets the user cherry-pick only the valuable findings from the review list, and applies them to the PR as review comments.
 
-## 開発の背景
-AIのコードレビューは便利だが、まだ不必要なコードレビューが生成されることがある。
-ジュニアなどのPRをAIがレビューしても、レビュイーがレビューの良し悪しを判断できない。そのため、シニアがレビューをする必要があるが、細かくレビューするのは大変なので、そこを半自動化するアプリを作りたい。
+## Background
+AI code review is convenient, but it still sometimes generates unnecessary review comments.
+Even when an AI reviews a PR from a junior engineer, the reviewee cannot judge whether the review is good or bad. Because of that, a senior engineer still has to review it, but reviewing everything in detail is a heavy burden — so I want to build an app that semi-automates that part.
 
-## デザイン
-- ダークテーマ
-- ダッシュボード
-- シンプル
-- スタイリッシュでカッコイイ
+## Design
+- Dark theme
+- Dashboard
+- Simple
+- Stylish and cool
 
-## 必要な機能
-- GitHubログインをしてGitHubの操作を可能にする
-  - Claude Agent SDKでClaude Codeと連携して、ghなどの認証を再利用できるなら不要
-- GitHubでリポジトリごとのPR一覧を確認できる
-- PRを選択して、ボタンを押すことでレビューが自動で実行される
-- AIがレビューした内容と対象コードを一覧で表示
-- ボタンを押すことで、選択したレビューコメントをPRのレビューコメントに反映する
-- AIへのレビューのプロンプトを調整できる
-  - 何を重視してレビューするかどのような観点でレビューするか
-  - テキストベースでプロンプト入力する
-
-## 簡易技術設計
-- Claude Agent SDKでClaude Codeと連携して利用可能にする
-  - Claude Agent SDKがその用途で使えない場合は別途検討
-- Webアプリケーションとして作成して、ローカルで起動する形にする
-  - デスクトップアプリの方が実装がシンプルになる場合は、Electronでデスクトップアプリとして実装
+## Required features
+- Log in to GitHub to enable GitHub operations
+  - Not needed if the Claude Agent SDK can integrate with Claude Code and reuse its auth (e.g. `gh`)
+- View a per-repository list of PRs on GitHub
+- Select a PR and run the review automatically by pressing a button
+- Show the AI's review findings and their target code in a list
+- Press a button to apply the selected review comments to the PR as review comments
+- Adjust the review prompt sent to the AI
+  - What to prioritize when reviewing, and from what perspective to review
+  - Enter the prompt as text
