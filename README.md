@@ -40,8 +40,6 @@ What I wanted was a solution that lets me **adopt AI code review semi-automatica
 | GitHub CLI (`gh`), authenticated | `gh auth status` (run `gh auth login` if needed) |
 | Claude Code auth | The SDK automatically reuses your local `~/.claude` auth |
 
-> When a review runs, the target repository's code is sent to Claude. Keep your organization's policies in mind.
-
 ## Setup
 
 ```bash
