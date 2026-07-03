@@ -16,7 +16,7 @@ import type { ReviewItem, ReviewSession } from "@/lib/schema/review";
 import type { ReviewProgress } from "@/lib/review/engine";
 import { api } from "@/lib/client/api";
 import { streamReview } from "@/lib/client/review-stream";
-import { parseDiffRightLines, isLineInDiff } from "@/lib/github/diff";
+import { parseDiffHunks, rangeCommentIssue } from "@/lib/github/diff";
 import { SEVERITY_ORDER } from "@/lib/client/severity";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -52,18 +52,25 @@ export function ReviewWorkspace({
   const [submitting, setSubmitting] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
 
-  // Compute postable lines from the diff (client-side pre-validation).
-  const diffMap = useMemo(
-    () => (prQuery.data ? parseDiffRightLines(prQuery.data.diff) : null),
+  // Compute postable hunks from the diff (client-side pre-validation).
+  const hunkMap = useMemo(
+    () => (prQuery.data ? parseDiffHunks(prQuery.data.diff) : null),
     [prQuery.data],
   );
 
   const invalidReason = (item: ReviewItem): string | undefined => {
-    if (!diffMap) return undefined;
-    if (!isLineInDiff(diffMap, item.filePath, item.endLine)) {
-      return t("invalidReason", { filePath: item.filePath, line: item.endLine });
+    if (!hunkMap) return undefined;
+    const issue = rangeCommentIssue(hunkMap, item.filePath, item.startLine, item.endLine);
+    if (!issue) return undefined;
+    switch (issue.code) {
+      case "reversed":
+        return t("invalidReasonReversed", { filePath: item.filePath });
+      case "multi-hunk":
+        return t("invalidReasonMultiHunk", { filePath: item.filePath, line: issue.line });
+      case "not-in-diff":
+      default:
+        return t("invalidReason", { filePath: item.filePath, line: issue.line });
     }
-    return undefined;
   };
 
   const sortedItems = useMemo(
@@ -77,7 +84,7 @@ export function ReviewWorkspace({
   const selectableIds = useMemo(
     () => sortedItems.filter((i) => i.status !== "submitted" && !invalidReason(i)).map((i) => i.id),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [sortedItems, diffMap],
+    [sortedItems, hunkMap],
   );
 
   async function handleRun() {

@@ -1,233 +1,228 @@
-# AI Review Dashboard 開発設計書
+# AI Review Dashboard Development Design Document
 
-> 本ドキュメントは AI エージェントが本アプリケーションを実装できるように、要件・アーキテクチャ・データモデル・API・実装タスクを定義したものです。
-> 元となる要件は [`docs/note.md`](./note.md) を参照してください。
+## 1. Product Overview
 
----
+### 1.1 Purpose
+A local web application that has an AI perform code review on Pull Requests, lets the **user cherry-pick only the valuable findings** from the multiple generated review comments, and applies only the selected ones to the GitHub PR as inline review comments.
 
-## 1. プロダクト概要
+### 1.2 Problem to Solve
+- AI review is convenient, but it also generates unnecessary or off-target findings.
+- Even when an AI reviews a junior's PR, the reviewee cannot judge whether the findings are good or bad.
+- In the end a senior still has to review in detail, which is a heavy burden.
+- → Create a state where **the senior only has to "pick from the AI's findings"**, semi-automating the review process.
 
-### 1.1 目的
-AI に Pull Request のコードレビューを実行させ、生成された複数のレビュー指摘から **ユーザーが価値あるものだけを取捨選択** し、選んだものだけを GitHub PR にインラインレビューコメントとして反映するためのローカル Web アプリケーション。
-
-### 1.2 解決したい課題
-- AI レビューは便利だが、不要・的外れな指摘も生成される。
-- ジュニアの PR を AI がレビューしても、レビュイー自身は指摘の良し悪しを判断できない。
-- 結局シニアが細かくレビューする必要があり負担が大きい。
-- → **シニアが「AI 指摘を選ぶだけ」で良い状態** を作り、レビュー工程を半自動化する。
-
-### 1.3 想定ユーザー / 利用シーン
-- レビュアー（シニアエンジニア）が自分のローカル環境でアプリを起動。
-- ローカルの Claude Code 認証・`gh` 認証をそのまま再利用する。
-- 1 人のレビュアーがローカルで使うシングルユーザー前提（マルチテナント・共有サーバーは対象外）。
+### 1.3 Target Users / Use Cases
+- A reviewer (senior engineer) runs the app in their own local environment.
+- Reuses the local Claude Code auth and `gh` auth as-is.
+- Assumes a single user running locally (multi-tenant / shared server is out of scope).
 
 ---
 
-## 2. 確定した技術方針（意思決定ログ）
+## 2. Confirmed Technical Decisions (Decision Log)
 
-| 項目 | 決定 | 理由 |
-|------|------|------|
-| 提供形態 | **ローカル Web アプリ** | サーバー側プロセスから SDK / gh を呼べて実装がシンプル。ブラウザで開く。 |
-| AI 連携 | **Claude Agent SDK + Claude Code CLI 認証の再利用** | ローカルの Claude Code 認証（`~/.claude/auth.json`）をそのまま利用。API キー管理不要。 |
-| GitHub 認証 | **`gh` CLI の認証を再利用** | 既存の `gh auth login` を流用。OAuth App 登録不要で最速。トークンは `gh auth token` で取得。 |
-| PR 反映形式 | **行単位のインラインレビューコメント** | 対象コードの該当行に紐付く。レビュー本来の体験に近い。 |
+| Item | Decision | Rationale |
+|------|----------|-----------|
+| Delivery form | **Local web app** | The server-side process can call the SDK / gh, keeping the implementation simple. Opened in a browser. |
+| AI integration | **Reuse Claude Agent SDK + Claude Code CLI auth** | Uses the local Claude Code auth (`~/.claude/auth.json`) as-is. No API key management needed. |
+| GitHub auth | **Reuse `gh` CLI auth** | Reuses the existing `gh auth login`. No OAuth App registration needed — the fastest path. Tokens obtained via `gh auth token`. |
+| PR application form | **Line-level inline review comments** | Tied to the relevant line of the target code. Close to the native review experience. |
 
-> 上記は確定事項。実装中に技術的制約で変更が必要な場合は本表を更新すること。
+> The above are confirmed. If a change is required due to technical constraints during implementation, update this table.
 
 ---
 
-## 3. 技術スタック
+## 3. Tech Stack
 
-| レイヤー | 採用技術 |
-|----------|----------|
-| フレームワーク | **Next.js 15（App Router）** / TypeScript |
-| 実行環境 | Node.js 20+（確認済み: v24 / `gh` 2.80） |
+| Layer | Technology |
+|-------|-----------|
+| Framework | **Next.js 15 (App Router)** / TypeScript |
+| Runtime | Node.js 20+ (verified: v24 / `gh` 2.80) |
 | UI | React 19 + **Tailwind CSS** + **shadcn/ui** |
-| アイコン | lucide-react |
-| 状態管理 | サーバー: Route Handlers / Server Actions、クライアント: TanStack Query（or SWR） |
-| AI 連携 | **`@anthropic-ai/claude-agent-sdk`** |
-| GitHub 連携 | `gh` CLI（`child_process`）+ 必要に応じ `@octokit/rest`（トークンは `gh auth token`） |
-| バリデーション | **zod**（AI 出力の構造化検証に必須） |
-| ローカル永続化 | ファイル（`~/.config/ai-review-dashboard/` 配下に JSON） |
-| デザイン | ダークテーマのダッシュボード。シンプル / スタイリッシュ。 |
+| Icons | lucide-react |
+| State management | Server: Route Handlers / Server Actions, Client: TanStack Query (or SWR) |
+| AI integration | **`@anthropic-ai/claude-agent-sdk`** |
+| GitHub integration | `gh` CLI (`child_process`) + `@octokit/rest` as needed (tokens via `gh auth token`) |
+| Validation | **zod** (essential for structured validation of AI output) |
+| Local persistence | Files (JSON under `~/.config/ai-review-dashboard/`) |
+| Design | Dark-themed dashboard. Simple / stylish. |
 
-> UI 実装時は `ui-ux-pro-max` スキルの活用を推奨（ダークテーマ・ダッシュボードの設計支援）。
+> When implementing the UI, using the `ui-ux-pro-max` skill is recommended (design support for dark-themed dashboards).
 
 ---
 
-## 4. システムアーキテクチャ
+## 4. System Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│ Browser (React / shadcn UI, ダークテーマ)                     │
-│   - リポジトリ / PR 一覧                                       │
-│   - レビュー実行ボタン                                         │
-│   - レビュー指摘の一覧 + 対象コード表示 + チェックボックス     │
-│   - プロンプト編集画面                                         │
+│ Browser (React / shadcn UI, dark theme)                       │
+│   - Repository / PR list                                      │
+│   - Run review button                                         │
+│   - Review findings list + target code display + checkboxes   │
+│   - Prompt editing screen                                     │
 └───────────────▲─────────────────────────────────────────────┘
                 │  fetch (REST / Server Actions)
 ┌───────────────┴─────────────────────────────────────────────┐
-│ Next.js Server (Node.js, ローカル起動)                        │
+│ Next.js Server (Node.js, launched locally)                    │
 │                                                              │
 │  ┌────────────┐  ┌────────────────┐  ┌────────────────────┐  │
-│  │ GitHub層   │  │ Review Engine  │  │ Settings / Prompt  │  │
+│  │ GitHub layer│ │ Review Engine  │  │ Settings / Prompt  │  │
 │  │ (gh/octokit)│ │ (Agent SDK)    │  │ Store (file)       │  │
 │  └─────┬──────┘  └───────┬────────┘  └─────────┬──────────┘  │
 └────────┼─────────────────┼─────────────────────┼─────────────┘
          │                 │                     │
    ┌─────▼─────┐     ┌─────▼──────┐        ┌─────▼─────┐
-   │ GitHub API│     │ Claude     │        │ ローカル   │
-   │ (gh auth) │     │ (Claude    │        │ ファイル   │
-   │           │     │  Code 認証) │        │           │
+   │ GitHub API│     │ Claude     │        │ Local     │
+   │ (gh auth) │     │ (Claude    │        │ files     │
+   │           │     │  Code auth) │        │           │
    └───────────┘     └────────────┘        └───────────┘
 ```
 
-### 4.1 レビュー実行のデータフロー
-1. ユーザーが PR を選択し「レビュー実行」を押下。
-2. サーバーが対象 PR を一時ディレクトリに checkout（`gh pr checkout` 相当）。
-3. PR の diff（`gh pr diff`）とメタ情報、ユーザー設定のレビュープロンプトを組み立てる。
-4. Claude Agent SDK の `query()` を `cwd = 一時リポジトリ`、`allowedTools: ["Read","Grep","Glob","Bash"]` で実行。Claude にリポジトリ全体のコンテキストを与えつつ diff を中心にレビューさせる。
-5. **構造化 JSON**（後述の `ReviewItem[]`）でレビュー結果を受け取り、zod で検証。
-6. レビュー結果を `ReviewSession` として保存し、クライアントへ返す。
-7. ユーザーが指摘をチェックして「PR に反映」を押下。
-8. サーバーが選択された指摘を GitHub のインラインレビューコメントとして投稿。
+### 4.1 Data Flow of a Review Run
+1. The user selects a PR and presses "Run review".
+2. The server checks out the target PR into a temporary directory (equivalent to `gh pr checkout`).
+3. Assembles the PR diff (`gh pr diff`), metadata, and the user-configured review prompt.
+4. Runs the Claude Agent SDK's `query()` with `cwd = temp repository` and `allowedTools: ["Read","Grep","Glob","Bash"]`. Gives Claude the context of the whole repository while having it review with a focus on the diff.
+5. Receives the review results as **structured JSON** (the `ReviewItem[]` described below) and validates them with zod.
+6. Saves the review results as a `ReviewSession` and returns them to the client.
+7. The user checks findings and presses "Apply to PR".
+8. The server posts the selected findings as GitHub inline review comments.
 
 ---
 
-## 5. 主要機能と要件
+## 5. Key Features and Requirements
 
-### F-1. GitHub 認証（gh 再利用）
-- アプリ起動時に `gh auth status` を実行し、ログイン状態とユーザー名を取得。
-- 未ログイン時はその旨を UI に表示し、`gh auth login` の実行を促す（アプリからは実行しない）。
-- GitHub API 呼び出し用トークンは `gh auth token` で都度取得（保存しない）。
+### F-1. GitHub Auth (reuse gh)
+- On app startup, run `gh auth status` to get the login state and username.
+- When not logged in, show that in the UI and prompt the user to run `gh auth login` (the app itself does not run it).
+- Tokens for GitHub API calls are fetched each time via `gh auth token` (not stored).
 
-### F-2. リポジトリ / PR 一覧
-- ユーザーがアクセス可能なリポジトリを一覧表示（検索・絞り込み可）。
-- リポジトリ選択でオープンな PR 一覧を表示（番号・タイトル・作者・更新日時・変更行数・ブランチ）。
-- 一覧は `gh` または Octokit で取得。
+### F-2. Repository / PR List
+- List repositories accessible to the user (searchable / filterable).
+- Selecting a repository shows its open PR list (number, title, author, updated time, changed line count, branch).
+- The list is obtained via `gh` or Octokit.
 
-### F-3. レビュー実行
-- PR 詳細画面の「レビュー実行」ボタンで AI レビューを開始。
-- 実行中はプログレス（checkout → 解析 → レビュー生成）を表示。
-- 進捗は SDK のストリーミングメッセージを SSE 等でクライアントへ反映してもよい（任意）。
+### F-3. Run Review
+- Start the AI review with the "Run review" button on the PR detail screen.
+- While running, show progress (checkout → analysis → review generation).
+- Progress may be reflected to the client via SSE etc. using the SDK's streaming messages (optional).
 
-### F-4. レビュー結果の一覧表示
-- 各指摘について以下を表示:
-  - 対象ファイルパス・行範囲
-  - **対象コードのスニペット**（該当行のハイライト付き）
-  - 指摘本文（Markdown）
-  - 重要度（`severity`: info / warning / critical）
-  - カテゴリ（`category`: bug / performance / security / style / maintainability など）
-- 各指摘にチェックボックス。全選択 / 全解除あり。
+### F-4. Review Results List
+- For each finding, display:
+  - Target file path and line range
+  - **Snippet of the target code** (with the relevant lines highlighted)
+  - Finding body (Markdown)
+  - Severity (`severity`: info / warning / critical)
+  - Category (`category`: bug / performance / security / style / maintainability, etc.)
+- A checkbox for each finding. Select-all / deselect-all available.
 
-### F-5. PR への反映
-- チェックした指摘のみを GitHub PR の **インラインレビューコメント** として投稿。
-- 1 回の操作で 1 件の Review（`event: COMMENT`）にまとめて投稿。
-- 行情報が diff に含まれない指摘は、投稿不可として UI で警告（PR 全体コメントへフォールバック可、任意）。
-- 投稿成功後、各指摘に「反映済み」状態を付与。
+### F-5. Apply to PR
+- Post only the checked findings as GitHub PR **inline review comments**.
+- Post them together as a single Review (`event: COMMENT`) in one operation.
+- Findings whose line info is not in the diff are flagged as non-postable in the UI (falling back to a whole-PR comment is possible, optional).
+- After a successful post, mark each finding as "applied".
 
-### F-6. レビュープロンプトの調整
-- レビュー観点・重視点をテキストで自由編集できる設定画面。
-- 内容はローカルに永続化。デフォルトプロンプトを同梱。
-- プロンプトはレビュー実行時にシステムプロンプト or ユーザープロンプトへ差し込む。
+### F-6. Adjusting the Review Prompt
+- A settings screen where review perspectives / priorities can be freely edited as text.
+- The content is persisted locally. A default prompt is bundled.
+- The prompt is injected into the system prompt or user prompt when running a review.
 
 ---
 
-## 6. データモデル
+## 6. Data Model
 
 ```ts
-// レビュー1指摘
+// A single review finding
 interface ReviewItem {
   id: string;                 // uuid
-  filePath: string;           // 例: "src/api/user.ts"
-  startLine: number;          // diff の新ファイル側行番号
+  filePath: string;           // e.g. "src/api/user.ts"
+  startLine: number;          // line number on the new-file side of the diff
   endLine: number;
-  side: "RIGHT" | "LEFT";     // GitHub のレビュー行サイド。通常 RIGHT
+  side: "RIGHT" | "LEFT";     // GitHub review line side. Usually RIGHT
   severity: "info" | "warning" | "critical";
   category: string;           // bug / performance / security / style / maintainability ...
-  title: string;              // 短い見出し
-  body: string;               // 指摘本文（Markdown）
-  codeSnippet: string;        // 対象コード抜粋（表示用）
+  title: string;              // short heading
+  body: string;               // finding body (Markdown)
+  codeSnippet: string;        // excerpt of the target code (for display)
   status: "pending" | "submitted" | "skipped";
 }
 
-// 1回のレビュー実行
+// A single review run
 interface ReviewSession {
   id: string;
   repo: string;               // "owner/name"
   prNumber: number;
-  headSha: string;            // インラインコメント投稿に必須（commit_id）
-  promptUsed: string;         // 実行時のプロンプト（再現性のため保存）
-  model: string;              // 使用モデル
+  headSha: string;            // required for posting inline comments (commit_id)
+  promptUsed: string;         // the prompt used at run time (saved for reproducibility)
+  model: string;              // model used
   items: ReviewItem[];
   createdAt: string;          // ISO8601
 }
 
-// ユーザー設定
+// User settings
 interface AppSettings {
-  reviewPrompt: string;       // F-6 のプロンプト
-  model: string;              // 既定: "claude-opus-4-8"（alias "opus" 可）
+  reviewPrompt: string;       // the prompt from F-6
+  model: string;              // default: "claude-opus-4-8" (alias "opus" allowed)
 }
 ```
 
-### 永続化先
+### Persistence Locations
 - `~/.config/ai-review-dashboard/settings.json` … `AppSettings`
-- `~/.config/ai-review-dashboard/sessions/<sessionId>.json` … `ReviewSession`（履歴・任意）
+- `~/.config/ai-review-dashboard/sessions/<sessionId>.json` … `ReviewSession` (history, optional)
 
 ---
 
-## 7. AI レビュー連携の実装指針
+## 7. Implementation Guidelines for AI Review Integration
 
-### 7.1 query() 呼び出し例
+### 7.1 Example query() Call
 ```ts
 import { query } from "@anthropic-ai/claude-agent-sdk";
 
 const result = query({
-  prompt: buildReviewPrompt(diff, userPrompt), // 下記参照
+  prompt: buildReviewPrompt(diff, userPrompt), // see below
   options: {
     systemPrompt: { type: "preset", preset: "claude_code" },
-    model: settings.model,            // 例: "claude-opus-4-8"
-    cwd: checkoutDir,                 // checkout した一時リポジトリ
+    model: settings.model,            // e.g. "claude-opus-4-8"
+    cwd: checkoutDir,                 // the checked-out temporary repository
     allowedTools: ["Read", "Grep", "Glob", "Bash"],
-    permissionMode: "bypassPermissions", // ローカル & 読み取り中心のため自動承認
+    permissionMode: "bypassPermissions", // auto-approve since local & read-centric
   },
 });
 
 for await (const message of result) {
-  // 進捗ストリーミング（任意でクライアントへ）
-  // 最終アシスタントメッセージから JSON を抽出
+  // Streaming progress (optionally to the client)
+  // Extract JSON from the final assistant message
 }
 ```
-- 認証: SDK はローカル Claude Code 認証（`~/.claude/auth.json`）を自動再利用するため追加設定不要。
-- `permissionMode` は読み取り系ツール中心のローカル用途のため自動承認。書き込み・破壊的コマンドは行わせない方針（プロンプトで明示）。
+- Auth: The SDK automatically reuses the local Claude Code auth (`~/.claude/auth.json`), so no extra setup is needed.
+- `permissionMode` is auto-approve since this is a local, read-tool-centric use case. The policy is to not let it run write / destructive commands (made explicit in the prompt).
 
-### 7.2 構造化出力の取得
-- LLM の出力は自由文になりがちなため、**「指定 JSON スキーマのみを出力せよ」** とプロンプトで強制し、出力を `zod` で検証する。
-- 抽出失敗時は 1 回リトライ（「JSON のみを返せ」と再指示）。それでも失敗ならエラーを UI に表示。
-- 推奨: 最終メッセージから ```json ブロックを抽出 → `JSON.parse` → `z.array(reviewItemSchema)` で検証。
+### 7.2 Obtaining Structured Output
+- Since LLM output tends to be free-form, force **"output only the specified JSON schema"** in the prompt and validate the output with `zod`.
+- On extraction failure, retry once (re-instructing "return JSON only"). If it still fails, show an error in the UI.
+- Recommended: extract the ```json block from the final message → `JSON.parse` → validate with `z.array(reviewItemSchema)`.
 
-### 7.3 プロンプト組み立て（buildReviewPrompt の責務）
-- PR タイトル・説明・diff を含める。
-- ユーザー設定の `reviewPrompt`（観点・重視点）を埋め込む。
-- 出力フォーマット（`ReviewItem` の JSON 配列）と各フィールドの意味を明記。
-- 行番号は **diff の新ファイル側（RIGHT）の行番号** を返すよう指示（インラインコメント投稿に必須）。
-- 「価値の低い・重複・好み次第の指摘は出さない」など、ノイズ抑制の指示を含める。
+### 7.3 Prompt Assembly (responsibilities of buildReviewPrompt)
+- Include the PR title, description, and diff.
+- Embed the user-configured `reviewPrompt` (perspectives / priorities).
+- Clearly state the output format (a JSON array of `ReviewItem`) and the meaning of each field.
+- Instruct it to return line numbers as the **line numbers on the new-file (RIGHT) side of the diff** (required for posting inline comments).
+- Include noise-suppression instructions like "do not produce low-value, duplicate, or preference-dependent findings".
 
 ---
 
-## 8. GitHub 連携の実装指針
+## 8. Implementation Guidelines for GitHub Integration
 
-### 8.1 取得系
-- リポジトリ一覧: `gh repo list --json ...` or Octokit。
-- PR 一覧: `gh pr list --repo owner/name --json number,title,author,updatedAt,...`。
-- PR diff: `gh pr diff <num> --repo owner/name`。
-- head SHA: `gh pr view <num> --json headRefOid`。
+### 8.1 Retrieval
+- Repository list: `gh repo list --json ...` or Octokit.
+- PR list: `gh pr list --repo owner/name --json number,title,author,updatedAt,...`.
+- PR diff: `gh pr diff <num> --repo owner/name`.
+- head SHA: `gh pr view <num> --json headRefOid`.
 
-### 8.2 checkout（レビュー用一時ディレクトリ）
-- `os.tmpdir()` 配下に作業ディレクトリを作成し、対象 PR のブランチを取得。
-- 終了後にクリーンアップ。同一 PR の再レビュー時はキャッシュ再利用も可（任意）。
+### 8.2 Checkout (temporary directory for review)
+- Create a working directory under `os.tmpdir()` and fetch the target PR's branch.
+- Clean up afterward. Cache reuse for re-reviewing the same PR is allowed (optional).
 
-### 8.3 インラインレビュー投稿
+### 8.3 Posting Inline Reviews
 - GitHub REST: `POST /repos/{owner}/{repo}/pulls/{number}/reviews`
   ```json
   {
@@ -238,42 +233,42 @@ for await (const message of result) {
     ]
   }
   ```
-- 複数行指摘は `start_line` / `start_side` も付与可。
-- トークンは `gh auth token`。Octokit か `gh api` で呼び出す。
-- 投稿対象の行が PR の diff に含まれていない場合 API がエラーになるため、事前に diff 範囲と突き合わせて弾く / 警告する。
+- For multi-line findings, `start_line` / `start_side` can also be added.
+- Token via `gh auth token`. Call through Octokit or `gh api`.
+- Since the API errors when the target line is not included in the PR's diff, cross-check against the diff range beforehand and reject / warn.
 
 ---
 
-## 9. API 設計（Route Handlers）
+## 9. API Design (Route Handlers)
 
-| メソッド | パス | 説明 |
-|----------|------|------|
-| GET | `/api/auth/status` | gh ログイン状態・ユーザー名 |
-| GET | `/api/repos` | アクセス可能なリポジトリ一覧 |
-| GET | `/api/repos/{owner}/{repo}/pulls` | PR 一覧 |
-| GET | `/api/repos/{owner}/{repo}/pulls/{number}` | PR 詳細（diff・headSha 含む） |
-| POST | `/api/repos/{owner}/{repo}/pulls/{number}/review` | レビュー実行 → `ReviewSession` を返す（進捗は SSE 可） |
-| POST | `/api/repos/{owner}/{repo}/pulls/{number}/comments` | 選択した `ReviewItem[]` をインライン投稿 |
-| GET/PUT | `/api/settings` | `AppSettings` の取得・更新 |
-
----
-
-## 10. 画面構成
-
-1. **ダッシュボード / リポジトリ一覧** — リポジトリ検索・選択。認証状態バナー。
-2. **PR 一覧** — 選択リポジトリのオープン PR。各行に「レビュー実行」導線。
-3. **レビュー結果画面** — 指摘カードの一覧（対象コード + 指摘 + 重要度バッジ + チェックボックス）、上部に「選択した N 件を PR に反映」ボタン、実行ログ/進捗。
-4. **設定 / プロンプト編集** — レビュープロンプト編集、モデル選択。
-
-### デザイン要件
-- ダークテーマ固定。背景は深いニュートラルグレー、アクセント 1 色。
-- 余白広め・タイポグラフィ重視のシンプルでスタイリッシュなダッシュボード。
-- 重要度はバッジ色で区別（critical=赤系 / warning=黄系 / info=青系）。
-- コードスニペットはシンタックスハイライト（例: shiki / prism）。
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/api/auth/status` | gh login state / username |
+| GET | `/api/repos` | List of accessible repositories |
+| GET | `/api/repos/{owner}/{repo}/pulls` | PR list |
+| GET | `/api/repos/{owner}/{repo}/pulls/{number}` | PR detail (including diff / headSha) |
+| POST | `/api/repos/{owner}/{repo}/pulls/{number}/review` | Run review → returns a `ReviewSession` (progress via SSE possible) |
+| POST | `/api/repos/{owner}/{repo}/pulls/{number}/comments` | Post the selected `ReviewItem[]` inline |
+| GET/PUT | `/api/settings` | Get / update `AppSettings` |
 
 ---
 
-## 11. ディレクトリ構成（提案）
+## 10. Screen Structure
+
+1. **Dashboard / Repository list** — repository search and selection. Auth-state banner.
+2. **PR list** — open PRs of the selected repository. Each row has a "Run review" entry point.
+3. **Review results screen** — a list of finding cards (target code + finding + severity badge + checkbox), an "Apply N selected to PR" button at the top, and a run log / progress.
+4. **Settings / Prompt editing** — edit the review prompt and select the model.
+
+### Design Requirements
+- Fixed dark theme. Deep neutral-gray background, one accent color.
+- A simple, stylish dashboard with generous whitespace and typography focus.
+- Distinguish severity by badge color (critical=red-ish / warning=yellow-ish / info=blue-ish).
+- Code snippets use syntax highlighting (e.g. shiki / prism).
+
+---
+
+## 11. Directory Structure (Proposal)
 
 ```
 claude-review-dashboard/
@@ -282,14 +277,14 @@ claude-review-dashboard/
 │  └─ development-design.md
 ├─ src/
 │  ├─ app/
-│  │  ├─ (dashboard)/...          # 画面
+│  │  ├─ (dashboard)/...          # Screens
 │  │  └─ api/...                  # Route Handlers
-│  ├─ components/                 # UI（shadcn/ui ベース）
+│  ├─ components/                 # UI (shadcn/ui based)
 │  ├─ lib/
-│  │  ├─ github/                  # gh / octokit ラッパー
-│  │  ├─ review/                  # Agent SDK 連携・プロンプト・JSON抽出
-│  │  ├─ settings/                # 設定ファイル I/O
-│  │  └─ schema/                  # zod スキーマ・型
+│  │  ├─ github/                  # gh / octokit wrapper
+│  │  ├─ review/                  # Agent SDK integration, prompt, JSON extraction
+│  │  ├─ settings/                # Settings file I/O
+│  │  └─ schema/                  # zod schemas / types
 │  └─ styles/
 ├─ package.json
 └─ ...
@@ -297,92 +292,92 @@ claude-review-dashboard/
 
 ---
 
-## 12. 実装マイルストーン（チェックリスト）
+## 12. Implementation Milestones (Checklist)
 
-> AI エージェントは原則この順で実装する。各マイルストーンは独立して動作確認できる単位。完了した項目は `[x]` に更新すること。
+> The AI agent implements in this order in principle. Each milestone is a unit that can be verified independently. Update completed items to `[x]`.
 
-### M0: プロジェクト基盤
-- [x] Next.js 15（App Router）+ TypeScript プロジェクトを作成
-- [x] Tailwind CSS + shadcn/ui を導入
-- [x] ダークテーマ固定のグローバルレイアウト・カラートークンを定義
-- [x] サイドバー / ヘッダーを含むダッシュボードのレイアウト枠を作成
-- [x] lint / format（ESLint / Prettier）と基本スクリプトを整備
+### M0: Project Foundation
+- [x] Create a Next.js 15 (App Router) + TypeScript project
+- [x] Introduce Tailwind CSS + shadcn/ui
+- [x] Define a fixed dark-theme global layout and color tokens
+- [x] Create a dashboard layout frame including sidebar / header
+- [x] Set up lint / format (ESLint / Prettier) and basic scripts
 
-### M1: 認証・GitHub 取得系
-- [x] `gh` CLI ラッパー（`lib/github`）を実装（`child_process` 実行・エラーハンドリング）
-- [x] `GET /api/auth/status`（`gh auth status` でログイン状態・ユーザー名取得）
-- [x] 未ログイン時に `gh auth login` を促す認証状態バナーを表示
-- [x] `GET /api/repos`（リポジトリ一覧取得）
-- [x] `GET /api/repos/{owner}/{repo}/pulls`（PR 一覧取得）
-- [x] リポジトリ一覧 / PR 一覧画面を実装（検索・絞り込み）
+### M1: Auth / GitHub Retrieval
+- [x] Implement a `gh` CLI wrapper (`lib/github`) (`child_process` execution, error handling)
+- [x] `GET /api/auth/status` (get login state / username via `gh auth status`)
+- [x] Show an auth-state banner prompting `gh auth login` when not logged in
+- [x] `GET /api/repos` (get repository list)
+- [x] `GET /api/repos/{owner}/{repo}/pulls` (get PR list)
+- [x] Implement the repository list / PR list screens (search / filter)
 
-### M2: レビュー実行（コア）
-- [x] `@anthropic-ai/claude-agent-sdk` を導入
-- [x] PR を一時ディレクトリへ checkout する処理を実装
-- [x] PR diff・メタ情報を取得（`gh pr diff` / `gh pr view --json headRefOid`）
-- [x] zod スキーマ（`ReviewItem` / `ReviewSession`）を定義
-- [x] `buildReviewPrompt`（diff + ユーザープロンプト + 出力フォーマット指示）を実装
-- [x] `query()` を呼び出しレビューを実行（Claude Code 認証再利用）
-- [x] 出力 JSON の抽出 → zod 検証 → 失敗時 1 回リトライを実装
-- [x] `POST /api/repos/{owner}/{repo}/pulls/{number}/review` で `ReviewSession` を返却
-- [x] 一時ディレクトリのクリーンアップ
+### M2: Run Review (Core)
+- [x] Introduce `@anthropic-ai/claude-agent-sdk`
+- [x] Implement checking out a PR into a temporary directory
+- [x] Get PR diff / metadata (`gh pr diff` / `gh pr view --json headRefOid`)
+- [x] Define zod schemas (`ReviewItem` / `ReviewSession`)
+- [x] Implement `buildReviewPrompt` (diff + user prompt + output format instructions)
+- [x] Call `query()` to run the review (reusing Claude Code auth)
+- [x] Implement output JSON extraction → zod validation → retry once on failure
+- [x] Return a `ReviewSession` from `POST /api/repos/{owner}/{repo}/pulls/{number}/review`
+- [x] Clean up the temporary directory
 
-### M3: レビュー結果表示
-- [x] 指摘カードコンポーネント（対象コード + 指摘本文 + 重要度バッジ + カテゴリ）
-- [x] コードスニペットのシンタックスハイライト（shiki / prism）
-- [x] チェックボックス（個別 / 全選択 / 全解除）
-- [x] レビュー実行中のプログレス表示
-- [x] レビュー結果画面の統合
+### M3: Review Results Display
+- [x] Finding card component (target code + finding body + severity badge + category)
+- [x] Syntax highlighting for code snippets (shiki / prism)
+- [x] Checkboxes (individual / select-all / deselect-all)
+- [x] Progress display while a review runs
+- [x] Integrate the review results screen
 
-### M4: PR 反映
-- [x] 選択指摘を GitHub インラインレビューへ変換する処理
-- [x] diff 範囲と行番号を突き合わせて投稿不可な指摘を検出・警告
-- [x] `POST .../comments`（`POST /repos/.../pulls/.../reviews`, `event: COMMENT`）で一括投稿
-- [x] 投稿成功後に各指摘を「反映済み」状態へ更新
-- [x] 成功 / 失敗のトースト・エラーハンドリング
+### M4: Apply to PR
+- [x] Logic to convert selected findings into GitHub inline reviews
+- [x] Cross-check line numbers against the diff range to detect / warn about non-postable findings
+- [x] Batch-post via `POST .../comments` (`POST /repos/.../pulls/.../reviews`, `event: COMMENT`)
+- [x] Update each finding to the "applied" state after a successful post
+- [x] Success / failure toasts and error handling
 
-### M5: プロンプト調整 / 設定
-- [x] `AppSettings` のローカルファイル I/O（`lib/settings`）
-- [x] デフォルトレビュープロンプトを同梱
+### M5: Prompt Adjustment / Settings
+- [x] Local file I/O for `AppSettings` (`lib/settings`)
+- [x] Bundle a default review prompt
 - [x] `GET/PUT /api/settings`
-- [x] 設定 / プロンプト編集画面（プロンプト編集・モデル選択）
+- [x] Settings / prompt editing screen (prompt editing, model selection)
 
-### M6: 仕上げ
-- [x] レビュー進捗の SSE ストリーミング（任意）
-- [x] 全体のエラーハンドリング・空状態 / ローディング状態の整備
-- [x] デザインの磨き込み（余白・タイポグラフィ・バッジ色）
-- [x] README（起動手順・前提となる `gh` / Claude Code 認証）を作成
-- [x] 受け入れ基準（§13）を全て満たすことを確認
-
----
-
-## 13. 受け入れ基準（Acceptance Criteria）
-
-- [x] `gh` 認証済み状態で起動すると、ログインユーザー名とリポジトリ一覧が表示される。
-- [x] リポジトリを選ぶとオープン PR 一覧が表示される。
-- [x] PR を選び「レビュー実行」を押すと、AI レビューが走り、対象コード付きで指摘が一覧表示される。
-- [x] 指摘を取捨選択（チェック）でき、選んだものだけが GitHub PR にインラインコメントとして投稿される。
-- [x] 投稿された行が GitHub 上で正しい該当行に表示される。
-- [x] レビュープロンプトを編集・保存でき、次回レビューに反映される。
-- [x] Anthropic API キーを別途設定しなくても（Claude Code 認証再利用で）レビューが動く。
+### M6: Finishing Touches
+- [x] SSE streaming of review progress (optional)
+- [x] Overall error handling, empty-state / loading-state polish
+- [x] Design refinement (whitespace, typography, badge colors)
+- [x] Create README (startup steps, prerequisite `gh` / Claude Code auth)
+- [x] Confirm all acceptance criteria (§13) are met
 
 ---
 
-## 14. 非機能・制約・リスク
+## 13. Acceptance Criteria
 
-| 項目 | 方針 / 留意点 |
-|------|---------------|
-| シングルユーザー | ローカル起動前提。認証情報はマシンの `gh` / Claude Code に依存。 |
-| セキュリティ | トークンはファイルに保存せず都度取得。レビュー対象リポジトリのコードを Claude に渡す点をユーザーに明示。 |
-| LLM 出力の不安定性 | 構造化出力を zod 検証 + リトライで担保。失敗時は明確にエラー表示。 |
-| 行番号ズレ | diff 範囲外の指摘は投稿前に検証して弾く。 |
-| 大きい PR | diff が巨大な場合はトークン超過の恐れ。ファイル単位分割・上限設定を検討（将来対応可）。 |
-| コスト | Claude Code サブスク認証を利用。実行回数に応じた利用がかかる旨を留意。 |
+- [x] When started with `gh` authenticated, the logged-in username and repository list are shown.
+- [x] Selecting a repository shows the open PR list.
+- [x] Selecting a PR and pressing "Run review" runs the AI review and shows findings in a list with their target code.
+- [x] Findings can be cherry-picked (checked), and only the selected ones are posted to the GitHub PR as inline comments.
+- [x] Posted lines appear on the correct target line on GitHub.
+- [x] The review prompt can be edited and saved, and is reflected in the next review.
+- [x] Reviews work without separately configuring an Anthropic API key (via reusing Claude Code auth).
 
 ---
 
-## 15. オープンな検討事項（実装時に判断）
-- 進捗表示を SSE ストリーミングにするか、完了後一括返却にするか（M2 はまず一括で可）。
-- レビュー履歴（`ReviewSession` 保存）を UI から閲覧可能にするか。
-- 大規模 diff のチャンク分割戦略。
-- インライン不可指摘の PR 全体コメントへのフォールバック有無。
+## 14. Non-functional Aspects / Constraints / Risks
+
+| Item | Policy / Notes |
+|------|----------------|
+| Single user | Assumes local startup. Auth info depends on the machine's `gh` / Claude Code. |
+| Security | Tokens are fetched each time rather than stored in a file. Make it explicit to the user that the target repository's code is passed to Claude. |
+| LLM output instability | Ensure structured output via zod validation + retry. Clearly show an error on failure. |
+| Line-number drift | Findings outside the diff range are validated and rejected before posting. |
+| Large PRs | A huge diff risks exceeding the token limit. Consider per-file splitting / limit settings (can be addressed in the future). |
+| Cost | Uses Claude Code subscription auth. Note that usage accrues based on the number of runs. |
+
+---
+
+## 15. Open Questions (to decide during implementation)
+- Whether to make progress display SSE-streamed or return it all at once after completion (M2 can start with all-at-once).
+- Whether review history (saved `ReviewSession`) should be viewable from the UI.
+- Chunk-splitting strategy for large diffs.
+- Whether to fall back to a whole-PR comment for findings that can't be posted inline.

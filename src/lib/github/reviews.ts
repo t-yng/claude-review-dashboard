@@ -1,5 +1,5 @@
 import { gh, getToken } from "./gh";
-import { parseDiffRightLines, isLineInDiff } from "./diff";
+import { parseDiffHunks, rangeCommentError } from "./diff";
 import type { ReviewItem } from "@/lib/schema/review";
 
 export interface ReviewCommentInput {
@@ -50,17 +50,15 @@ export async function submitReview(
   diff: string,
   items: ReviewItem[],
 ): Promise<SubmitResult> {
-  const diffMap = parseDiffRightLines(diff);
+  const hunkMap = parseDiffHunks(diff);
   const comments: ReviewCommentInput[] = [];
   const submittedIds: string[] = [];
   const skipped: { id: string; reason: string }[] = [];
 
   for (const item of items) {
-    if (!isLineInDiff(diffMap, item.filePath, item.endLine)) {
-      skipped.push({
-        id: item.id,
-        reason: `${item.filePath}:${item.endLine} is not part of the PR diff, so it cannot be posted inline.`,
-      });
+    const reason = rangeCommentError(hunkMap, item.filePath, item.startLine, item.endLine);
+    if (reason) {
+      skipped.push({ id: item.id, reason });
       continue;
     }
     comments.push(toComment(item));
