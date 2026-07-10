@@ -4,6 +4,7 @@ import { buildReviewPrompt, JSON_ONLY_RETRY_PROMPT } from "./prompt";
 import { extractReviewItems } from "./extract";
 import { checkoutPr } from "./checkout";
 import { saveAiOutputLog } from "./log";
+import { resolveClaudeExecutable } from "./claude-executable";
 import type { PullRequestDetail } from "@/lib/schema/github";
 import type { AppSettings } from "@/lib/schema/settings";
 import type { ReviewItem, ReviewSession } from "@/lib/schema/review";
@@ -112,6 +113,11 @@ async function runQuery(
   emit: ProgressCallback,
   abortController?: AbortController,
 ): Promise<string> {
+  // In a packaged app the SDK would resolve the native binary to a path inside
+  // app.asar, which spawn cannot execute (spawn ENOTDIR). Point it at the
+  // unpacked binary instead. Falls back to the SDK default when unresolved.
+  const pathToClaudeCodeExecutable = resolveClaudeExecutable();
+
   const result = query({
     prompt,
     options: {
@@ -121,6 +127,7 @@ async function runQuery(
       allowedTools: ["Read", "Grep", "Glob", "Bash"],
       permissionMode: "bypassPermissions",
       abortController,
+      ...(pathToClaudeCodeExecutable ? { pathToClaudeCodeExecutable } : {}),
     },
   });
 
