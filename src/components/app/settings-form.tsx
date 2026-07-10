@@ -1,8 +1,6 @@
-"use client";
-
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 import { toast } from "sonner";
 import { Save, RotateCcw } from "lucide-react";
 import { api } from "@/lib/client/api";

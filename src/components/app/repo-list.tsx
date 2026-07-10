@@ -1,9 +1,7 @@
-"use client";
-
 import { useMemo, useState, useSyncExternalStore } from "react";
-import Link from "next/link";
+import { Link } from "@/components/ui/link";
 import { useQuery } from "@tanstack/react-query";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 import { Search, GitFork, Lock, ChevronRight, FolderGit2 } from "lucide-react";
 import { api } from "@/lib/client/api";
 import { Input } from "@/components/ui/input";

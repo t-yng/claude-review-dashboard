@@ -1,62 +1,28 @@
-import type {
-  AuthStatus,
-  Owner,
-  Repo,
-  PullRequest,
-  PullRequestDetail,
-} from "@/lib/schema/github";
-import type { ReviewItem, ReviewSession } from "@/lib/schema/review";
+import type { Owner, Repo, PullRequest } from "@/lib/schema/github";
+import type { ReviewItem } from "@/lib/schema/review";
 import type { AppSettings } from "@/lib/schema/settings";
-import type { SubmitResult } from "@/lib/github/reviews";
 
-/** fetch wrapper. Throws with the API's error message on non-2xx responses. */
-async function request<T>(url: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(url, {
-    ...init,
-    headers: { "Content-Type": "application/json", ...init?.headers },
-  });
-  if (!res.ok) {
-    let message = `Request failed (${res.status})`;
-    try {
-      const data = (await res.json()) as { error?: string };
-      if (data.error) message = data.error;
-    } catch {
-      // ignore
-    }
-    throw new Error(message);
-  }
-  return res.json() as Promise<T>;
-}
-
+/**
+ * Client-side API facade. Previously wrapped HTTP calls to the Next.js API
+ * routes; now delegates to the Electron main process via the preload bridge
+ * (`window.api`). Return shapes are preserved so UI components are unaffected.
+ */
 export const api = {
-  authStatus: () => request<AuthStatus>("/api/auth/status"),
-  owners: () => request<{ owners: Owner[] }>("/api/owners"),
-  repos: (owner?: string) =>
-    request<{ repos: Repo[] }>(
-      owner ? `/api/repos?owner=${encodeURIComponent(owner)}` : "/api/repos",
-    ),
-  pulls: (owner: string, repo: string) =>
-    request<{ pulls: PullRequest[] }>(`/api/repos/${owner}/${repo}/pulls`),
+  authStatus: () => window.api.auth.status(),
+  owners: (): Promise<{ owners: Owner[] }> =>
+    window.api.owners.list().then((owners) => ({ owners })),
+  repos: (owner?: string): Promise<{ repos: Repo[] }> =>
+    window.api.repos.list(owner).then((repos) => ({ repos })),
+  pulls: (owner: string, repo: string): Promise<{ pulls: PullRequest[] }> =>
+    window.api.pulls.list(owner, repo).then((pulls) => ({ pulls })),
   pullDetail: (owner: string, repo: string, number: number) =>
-    request<PullRequestDetail>(`/api/repos/${owner}/${repo}/pulls/${number}`),
-  review: (owner: string, repo: string, number: number) =>
-    request<ReviewSession>(`/api/repos/${owner}/${repo}/pulls/${number}/review`, {
-      method: "POST",
-    }),
+    window.api.pulls.detail(owner, repo, number),
   submitComments: (
     owner: string,
     repo: string,
     number: number,
     payload: { headSha: string; items: ReviewItem[] },
-  ) =>
-    request<SubmitResult>(`/api/repos/${owner}/${repo}/pulls/${number}/comments`, {
-      method: "POST",
-      body: JSON.stringify(payload),
-    }),
-  getSettings: () => request<AppSettings>("/api/settings"),
-  saveSettings: (settings: AppSettings) =>
-    request<AppSettings>("/api/settings", {
-      method: "PUT",
-      body: JSON.stringify(settings),
-    }),
+  ) => window.api.review.submit(owner, repo, number, payload),
+  getSettings: () => window.api.settings.get(),
+  saveSettings: (settings: AppSettings) => window.api.settings.save(settings),
 };

@@ -4,6 +4,7 @@ import { buildReviewPrompt, JSON_ONLY_RETRY_PROMPT } from "./prompt";
 import { extractReviewItems } from "./extract";
 import { checkoutPr } from "./checkout";
 import { saveAiOutputLog } from "./log";
+import { resolveClaudeExecutable } from "./claude-executable";
 import type { PullRequestDetail } from "@/lib/schema/github";
 import type { AppSettings } from "@/lib/schema/settings";
 import type { ReviewItem, ReviewSession } from "@/lib/schema/review";
@@ -23,6 +24,8 @@ export interface RunReviewParams {
   pr: PullRequestDetail;
   settings: AppSettings;
   onProgress?: ProgressCallback;
+  /** Optional controller to cancel the underlying SDK query. */
+  abortController?: AbortController;
 }
 
 /**
@@ -31,7 +34,7 @@ export interface RunReviewParams {
  * Cleans up the temporary directory on completion.
  */
 export async function runReview(params: RunReviewParams): Promise<ReviewSession> {
-  const { owner, repo, pr, settings, onProgress } = params;
+  const { owner, repo, pr, settings, onProgress, abortController } = params;
   const emit = (p: ReviewProgress) => onProgress?.(p);
 
   emit({ phase: "checkout", message: "Fetching the PR into a temporary directory…" });
@@ -41,7 +44,7 @@ export async function runReview(params: RunReviewParams): Promise<ReviewSession>
     emit({ phase: "generating", message: "Analyzing the repository and generating the review…" });
     const prompt = buildReviewPrompt(pr, settings.reviewPrompt);
 
-    let text = await runQuery(prompt, settings.model, checkout.dir, emit);
+    let text = await runQuery(prompt, settings.model, checkout.dir, emit, abortController);
     let items = extractReviewItems(text);
 
     // Always save the AI's raw output for debugging.
@@ -62,6 +65,7 @@ export async function runReview(params: RunReviewParams): Promise<ReviewSession>
         settings.model,
         checkout.dir,
         emit,
+        abortController,
       );
       items = extractReviewItems(text);
 
@@ -107,7 +111,13 @@ async function runQuery(
   model: string,
   cwd: string,
   emit: ProgressCallback,
+  abortController?: AbortController,
 ): Promise<string> {
+  // In a packaged app the SDK would resolve the native binary to a path inside
+  // app.asar, which spawn cannot execute (spawn ENOTDIR). Point it at the
+  // unpacked binary instead. Falls back to the SDK default when unresolved.
+  const pathToClaudeCodeExecutable = resolveClaudeExecutable();
+
   const result = query({
     prompt,
     options: {
@@ -116,6 +126,8 @@ async function runQuery(
       cwd,
       allowedTools: ["Read", "Grep", "Glob", "Bash"],
       permissionMode: "bypassPermissions",
+      abortController,
+      ...(pathToClaudeCodeExecutable ? { pathToClaudeCodeExecutable } : {}),
     },
   });
 

@@ -1,6 +1,4 @@
-"use client";
-
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 import { Check, Loader2, AlertCircle } from "lucide-react";
 import type { ReviewProgress } from "@/lib/review/engine";
 import { cn } from "@/lib/utils";

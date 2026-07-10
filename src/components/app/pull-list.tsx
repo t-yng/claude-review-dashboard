@@ -1,8 +1,6 @@
-"use client";
-
-import Link from "next/link";
+import { Link } from "@/components/ui/link";
 import { useQuery } from "@tanstack/react-query";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 import { GitPullRequest, Plus, Minus, Clock, ChevronRight } from "lucide-react";
 import { api } from "@/lib/client/api";
 import { Skeleton } from "@/components/ui/skeleton";

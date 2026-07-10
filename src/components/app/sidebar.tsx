@@ -1,8 +1,6 @@
-"use client";
-
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useTranslations } from "next-intl";
+import { useRouterState } from "@tanstack/react-router";
+import { Link } from "@/components/ui/link";
+import { useTranslations } from "use-intl";
 import { LayoutDashboard, Settings, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { LocaleSwitcher } from "./locale-switcher";
@@ -24,12 +22,13 @@ const NAV = [
 
 /** Left sidebar (navigation). */
 export function Sidebar() {
-  const pathname = usePathname();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
   const t = useTranslations("nav");
 
   return (
     <aside className="flex w-60 shrink-0 flex-col border-r border-border bg-surface">
-      <div className="flex h-16 items-center gap-2.5 px-5">
+      {/* Draggable title-bar region (traffic lights sit in the left inset). */}
+      <div className="app-drag flex h-16 items-center gap-2.5 py-2 pr-5 pl-20">
         <div className="flex size-8 items-center justify-center rounded-lg bg-accent/15 text-accent">
           <Sparkles className="size-4" />
         </div>

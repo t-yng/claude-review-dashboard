@@ -78,7 +78,16 @@ export function gh(args: string[], options: GhOptions = {}): Promise<string> {
         cwd: options.cwd,
         timeout: options.timeout ?? 120_000,
         maxBuffer: 64 * 1024 * 1024,
-        env: process.env,
+        // A GUI-launched app has no controlling terminal, so gh/git would hang
+        // forever waiting on an interactive credential or confirmation prompt.
+        // Disable all prompting so a missing/invalid credential fails fast with
+        // a real error instead of hanging.
+        env: {
+          ...process.env,
+          GIT_TERMINAL_PROMPT: "0",
+          GH_PROMPT_DISABLED: "1",
+          GH_NO_UPDATE_NOTIFIER: "1",
+        },
       },
       (error, stdout, stderr) => {
         if (error) {

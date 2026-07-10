@@ -1,11 +1,9 @@
 node_modules/
-.next/
 out/
+release/
 build/
 .DS_Store
 *.pem
 npm-debug.log*
 .env*.local
-next-env.d.ts
-.vercel
 *.tsbuildinfo
