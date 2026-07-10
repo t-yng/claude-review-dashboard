@@ -53,8 +53,8 @@ npm run dev
 
 ```bash
 npm run build      # bundle main / preload / renderer into out/
-npm run dist       # package a macOS .dmg into release/ (unsigned)
-npm run dist:dir   # package an unpacked .app into release/ (faster, for local testing)
+npm run pack       # package a macOS .dmg into release/ (unsigned)
+npm run pack:dir   # package an unpacked .app into release/ (faster, for local testing)
 ```
 
 ## Usage
