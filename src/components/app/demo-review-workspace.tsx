@@ -1,7 +1,5 @@
-"use client";
-
 import { useMemo, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 import { Sparkles, Send, ListChecks, ExternalLink } from "lucide-react";
 import { SEVERITY_ORDER } from "@/lib/client/severity";
 import { demoItems, demoPull, demoSession } from "@/lib/demo/mock-review";

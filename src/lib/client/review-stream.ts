@@ -9,69 +9,42 @@ interface StreamHandlers {
 }
 
 /**
- * Subscribe to a review run over SSE.
- * The server sends `progress` / `session` / `error` events.
+ * Subscribe to a review run over the IPC bridge. Mirrors the former SSE-based
+ * client: forwards `progress` / `session` / `error` callbacks and resolves once
+ * the run finishes. Aborting the provided signal cancels the run in the main
+ * process.
  */
-export async function streamReview(
+export function streamReview(
   owner: string,
   repo: string,
   number: number,
   handlers: StreamHandlers,
 ): Promise<void> {
-  const res = await fetch(`/api/repos/${owner}/${repo}/pulls/${number}/review`, {
-    method: "POST",
-    headers: { Accept: "text/event-stream" },
-    signal: handlers.signal,
+  return new Promise((resolve) => {
+    let settled = false;
+    const onAbort = () => run.cancel();
+    const finish = () => {
+      if (settled) return;
+      settled = true;
+      handlers.signal?.removeEventListener("abort", onAbort);
+      resolve();
+    };
+
+    const run = window.api.review.run(owner, repo, number, {
+      onProgress: handlers.onProgress,
+      onSession: (s) => {
+        handlers.onSession?.(s);
+        finish();
+      },
+      onError: (message) => {
+        handlers.onError?.(message);
+        finish();
+      },
+    });
+
+    if (handlers.signal) {
+      if (handlers.signal.aborted) run.cancel();
+      else handlers.signal.addEventListener("abort", onAbort);
+    }
   });
-
-  if (!res.ok || !res.body) {
-    let message = `Failed to start the review (${res.status})`;
-    try {
-      const data = (await res.json()) as { error?: string };
-      if (data.error) message = data.error;
-    } catch {
-      // ignore
-    }
-    handlers.onError?.(message);
-    return;
-  }
-
-  const reader = res.body.getReader();
-  const decoder = new TextDecoder();
-  let buffer = "";
-
-  for (;;) {
-    const { value, done } = await reader.read();
-    if (done) break;
-    buffer += decoder.decode(value, { stream: true });
-
-    // SSE separates events with a blank line (\n\n).
-    let idx: number;
-    while ((idx = buffer.indexOf("\n\n")) !== -1) {
-      const chunk = buffer.slice(0, idx);
-      buffer = buffer.slice(idx + 2);
-      dispatch(chunk, handlers);
-    }
-  }
-}
-
-function dispatch(chunk: string, handlers: StreamHandlers): void {
-  let event = "message";
-  const dataLines: string[] = [];
-  for (const line of chunk.split("\n")) {
-    if (line.startsWith("event:")) event = line.slice(6).trim();
-    else if (line.startsWith("data:")) dataLines.push(line.slice(5).trim());
-  }
-  if (dataLines.length === 0) return;
-
-  let payload: unknown;
-  try {
-    payload = JSON.parse(dataLines.join("\n"));
-  } catch {
-    return;
-  }
-
-  if (event === "progress") handlers.onProgress?.(payload as ReviewProgress);
-  else if (event === "session") handlers.onSession?.(payload as ReviewSession);
-  else if (event === "error") handlers.onError?.((payload as { message: string }).message);
 }

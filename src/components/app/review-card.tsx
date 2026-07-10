@@ -1,6 +1,4 @@
-"use client";
-
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 import { FileCode2, CheckCircle2, AlertTriangle } from "lucide-react";
 import type { ReviewItem } from "@/lib/schema/review";
 import { Badge } from "@/components/ui/badge";

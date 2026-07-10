@@ -1,6 +1,4 @@
-"use client";
-
-import { useFormatter, useNow } from "next-intl";
+import { useFormatter, useNow } from "use-intl";
 
 /**
  * Component that displays an ISO8601 timestamp as relative time in the current locale.

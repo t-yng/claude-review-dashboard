@@ -1,26 +1,14 @@
-"use client";
-
-import { useTransition } from "react";
-import { useLocale, useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "use-intl";
 import { Languages } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { type Locale, locales, LOCALE_LABELS } from "@/i18n/config";
-import { setLocale } from "@/i18n/locale";
+import { useLocaleControl } from "@/i18n/provider";
 import { Select } from "@/components/ui/select";
 
-/** Language switcher. Saves the choice to a cookie and re-renders server components. */
+/** Language switcher. Persists the choice via IPC and swaps the message catalog. */
 export function LocaleSwitcher() {
   const locale = useLocale();
   const t = useTranslations("language");
-  const router = useRouter();
-  const [pending, startTransition] = useTransition();
-
-  function handleChange(next: Locale) {
-    startTransition(async () => {
-      await setLocale(next);
-      router.refresh();
-    });
-  }
+  const { setLocale } = useLocaleControl();
 
   return (
     <label className="flex items-center gap-2 text-xs text-subtle">
@@ -28,8 +16,7 @@ export function LocaleSwitcher() {
       <span className="sr-only">{t("label")}</span>
       <Select
         value={locale}
-        onChange={(e) => handleChange(e.target.value as Locale)}
-        disabled={pending}
+        onChange={(e) => setLocale(e.target.value as Locale)}
         aria-label={t("label")}
         className="h-8 text-xs"
       >

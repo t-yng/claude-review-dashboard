@@ -1,8 +1,6 @@
-"use client";
-
 import { useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 import { toast } from "sonner";
 import {
   Sparkles,

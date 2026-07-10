@@ -1,6 +1,6 @@
 # Claude Review Dashboard
 
-A local web app that lets **Claude** review your GitHub Pull Requests, then lets a human **cherry-pick only the valuable findings** and post them back to the PR as inline review comments.
+A local **desktop app** (Electron) that lets **Claude** review your GitHub Pull Requests, then lets a human **cherry-pick only the valuable findings** and post them back to the PR as inline review comments.
 
 The reviewer (a senior engineer) runs it on their own machine and reuses their existing **Claude Code auth** and **`gh` CLI auth** as-is — no separate API key setup required.
 
@@ -21,13 +21,13 @@ What I wanted was a solution that lets me **adopt AI code review semi-automatica
 - 🎯 List findings with their target code and select/deselect them via checkboxes
 - 💬 Batch-post only the selected findings as GitHub inline review comments
 - ⚙️ Freely tune the review criteria (prompt) and model locally
-- 🌙 A clean, stylish dark-themed dashboard (with i18n via `next-intl`)
+- 🌙 A clean, stylish dark-themed dashboard (with i18n via `use-intl`)
 
 ## Technical highlights
 
 - **Reuses local Claude Code auth, not raw API keys** — reviews run through `@anthropic-ai/claude-agent-sdk` with the `claude_code` system-prompt preset, so the app inherits the user's existing Claude Code session instead of managing credentials itself.
 - **Agentic review over the real repo** — each run clones and checks out the PR into a temporary directory (`gh repo clone --depth 50` + `gh pr checkout --detach`) and gives Claude read-only tools (`Read`, `Grep`, `Glob`, `Bash`) so it can explore the whole codebase for context, not just the diff. The temp dir is always cleaned up in a `finally` block.
-- **Streaming progress over SSE** — checkout → generating → done/error phases are streamed to the client so long-running reviews show live progress.
+- **Streaming progress over IPC** — checkout → generating → done/error phases run in the Electron main process and are streamed to the renderer over IPC so long-running reviews show live progress (with best-effort cancellation via `AbortController`).
 - **Robust JSON extraction + schema validation** — LLM output is parsed with a bracket-balancing scanner that ignores brackets inside string literals (so nested ``` fences in a finding's body don't break parsing), then validated with **zod**. On failure it retries once with a JSON-only re-prompt, and always persists the raw AI output to a log for debugging.
 - **Pre-submission diff-range validation** — the app parses the unified diff (`gh pr diff`) to know exactly which lines are commentable, and warns about findings that fall outside the diff before posting, avoiding GitHub API errors on inline comments.
 - **No token persistence** — GitHub access goes through the `gh` CLI via `child_process`; tokens are fetched on demand and never stored.
@@ -47,7 +47,15 @@ npm install
 npm run dev
 ```
 
-Open <http://localhost:3000> in your browser.
+`npm run dev` launches the Electron desktop app with hot reload (electron-vite).
+
+### Build a distributable
+
+```bash
+npm run build      # bundle main / preload / renderer into out/
+npm run dist       # package a macOS .dmg into release/ (unsigned)
+npm run dist:dir   # package an unpacked .app into release/ (faster, for local testing)
+```
 
 ## Usage
 
@@ -64,13 +72,25 @@ Open <http://localhost:3000> in your browser.
 - `~/.config/claude-review-dashboard/sessions/<id>.json` — review run history
 - `~/.config/claude-review-dashboard/logs/` — raw AI output logs (for debugging)
 
+## Architecture
+
+The app follows the standard Electron process split:
+
+- **Main process** (`electron/main`) — Node.js backend that runs the `gh` CLI, drives the Claude Agent SDK, checks out PRs, and reads/writes local config. All former Next.js API routes are now IPC handlers (`electron/main/ipc.ts`).
+- **Preload** (`electron/preload`) — exposes a typed, minimal `window.api` bridge to the renderer via `contextBridge` (context isolation on).
+- **Renderer** (`src/`) — a Vite + React single-page app (TanStack Router). The client `api` facade and review stream call `window.api` instead of `fetch`.
+
+> Next.js was removed during the desktop migration: its API routes require a running server, which doesn't fit Electron. The framework-agnostic backend code under `src/lib` moved to the main process largely unchanged.
+
 ## Tech stack
 
-- **Next.js** (App Router) / TypeScript
+- **Electron** + **electron-vite** / TypeScript
+- **Vite** + **React** SPA with **TanStack Router**
 - **Tailwind CSS** + shadcn/ui-style components / lucide-react
-- **TanStack Query** (client-side data fetching)
-- **next-intl** (i18n)
+- **TanStack Query** (renderer data fetching)
+- **use-intl** (i18n; the framework-agnostic core of next-intl)
 - **@anthropic-ai/claude-agent-sdk** (runs reviews reusing Claude Code auth)
 - **zod** (structured validation of AI output)
 - **shiki** (syntax highlighting for code snippets)
+- **electron-builder** (macOS `.dmg` / `.app` packaging)
 - GitHub integration via the `gh` CLI through `child_process` (tokens fetched on demand, never stored)
