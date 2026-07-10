@@ -1,6 +1,11 @@
 import { app, BrowserWindow, shell } from "electron";
 import { join } from "node:path";
 import { registerIpcHandlers } from "./ipc";
+import { fixPath } from "./fix-path";
+
+// GUI launches don't inherit the shell PATH, so resolve it before any child
+// process (gh, the Claude agent SDK, …) is spawned.
+fixPath();
 
 /** Whether electron-vite is serving the renderer over its dev server. */
 const devServerUrl = process.env["ELECTRON_RENDERER_URL"];
