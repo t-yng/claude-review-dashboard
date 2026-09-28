@@ -4,8 +4,8 @@ import { useTranslations } from "use-intl";
 import { toast } from "sonner";
 import { Save, RotateCcw } from "lucide-react";
 import { api } from "@/lib/client/api";
-import type { AppSettings } from "@/lib/schema/settings";
-import { DEFAULT_REVIEW_PROMPT, MODEL_OPTIONS } from "@/lib/schema/settings";
+import type { AppSettings, ModelOption } from "@/lib/schema/settings";
+import { DEFAULT_MODEL, DEFAULT_REVIEW_PROMPT } from "@/lib/schema/settings";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -36,12 +36,20 @@ function SettingsFormFields({ settings }: { settings: AppSettings }) {
 
   const [prompt, setPrompt] = useState(settings.reviewPrompt);
   const [model, setModel] = useState(settings.model);
+  const {
+    data: models,
+    isLoading: modelsLoading,
+    error: modelsError,
+  } = useQuery({ queryKey: ["models"], queryFn: api.models, staleTime: Infinity, retry: false });
+
+  // Fall back to the default when the saved model is no longer offered.
+  const effectiveModel = resolveSelection(model, models);
   const [saving, setSaving] = useState(false);
 
   async function handleSave() {
     setSaving(true);
     try {
-      await api.saveSettings({ reviewPrompt: prompt.trim(), model });
+      await api.saveSettings({ reviewPrompt: prompt.trim(), model: effectiveModel });
       toast.success(t("savedTitle"));
     } catch (e) {
       const message = e instanceof Error ? e.message : String(e);
@@ -59,23 +67,43 @@ function SettingsFormFields({ settings }: { settings: AppSettings }) {
           <CardDescription>{t("modelDescription")}</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-2 sm:grid-cols-3">
-            {MODEL_OPTIONS.map((opt) => (
-              <button
-                key={opt.value}
-                onClick={() => setModel(opt.value)}
-                className={cn(
-                  "rounded-[var(--radius)] border px-4 py-3 text-left text-sm transition-colors duration-200",
-                  model === opt.value
-                    ? "border-accent/60 bg-accent/10 text-foreground"
-                    : "border-border bg-surface text-muted-foreground hover:border-border-strong hover:text-foreground",
-                )}
-              >
-                <span className="block font-medium">{opt.label}</span>
-                <span className="block font-mono text-xs text-subtle">{opt.value}</span>
-              </button>
-            ))}
-          </div>
+          {modelsLoading ? (
+            <div className="grid gap-2 sm:grid-cols-3">
+              <Skeleton className="h-16 w-full" />
+              <Skeleton className="h-16 w-full" />
+              <Skeleton className="h-16 w-full" />
+            </div>
+          ) : modelsError || !models?.length ? (
+            <p className="text-sm text-muted-foreground">
+              {modelsError ? t("modelsLoadFailed") : t("modelsEmpty")}
+              {modelsError && (
+                <span className="block font-mono text-xs text-subtle">
+                  {modelsError instanceof Error ? modelsError.message : String(modelsError)}
+                </span>
+              )}
+            </p>
+          ) : (
+            <div className="grid gap-2 sm:grid-cols-3">
+              {models.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setModel(opt.value)}
+                  className={cn(
+                    "rounded-[var(--radius)] border px-4 py-3 text-left text-sm transition-colors duration-200",
+                    effectiveModel === opt.value
+                      ? "border-accent/60 bg-accent/10 text-foreground"
+                      : "border-border bg-surface text-muted-foreground hover:border-border-strong hover:text-foreground",
+                  )}
+                >
+                  <span className="block font-medium">{opt.displayName}</span>
+                  <span className="block font-mono text-xs text-subtle">
+                    {opt.resolvedModel ?? opt.value}
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -118,4 +146,16 @@ function SettingsFormFields({ settings }: { settings: AppSettings }) {
       </div>
     </div>
   );
+}
+
+/**
+ * Pick the model to select/save. Keeps the saved value if it is still offered
+ * (by alias or resolved id), otherwise falls back to DEFAULT_MODEL, then the
+ * first listed model. With no list available the saved value is kept as-is.
+ */
+function resolveSelection(saved: string, models: ModelOption[] | undefined): string {
+  if (!models?.length) return saved;
+  const match = models.find((m) => m.value === saved || m.resolvedModel === saved);
+  if (match) return match.value;
+  return (models.find((m) => m.value === DEFAULT_MODEL) ?? models[0]).value;
 }

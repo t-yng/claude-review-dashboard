@@ -15,7 +15,7 @@ import type {
   PullRequestDetail,
 } from "@/lib/schema/github";
 import type { ReviewItem, ReviewSession } from "@/lib/schema/review";
-import type { AppSettings } from "@/lib/schema/settings";
+import type { AppSettings, ModelOption } from "@/lib/schema/settings";
 import type { SubmitResult } from "@/lib/github/reviews";
 import type { ReviewProgress } from "@/lib/review/engine";
 import type { Locale } from "@/i18n/config";
@@ -32,6 +32,7 @@ export const IPC = {
   reviewSubmit: "review:submit",
   settingsGet: "settings:get",
   settingsSave: "settings:save",
+  modelsList: "models:list",
   localeGet: "locale:get",
   localeSet: "locale:set",
   openExternal: "shell:openExternal",
@@ -88,6 +89,7 @@ export interface DesktopApi {
     get: () => Promise<AppSettings>;
     save: (settings: AppSettings) => Promise<AppSettings>;
   };
+  models: { list: () => Promise<ModelOption[]> };
   locale: {
     get: () => Promise<Locale>;
     set: (locale: Locale) => Promise<void>;
