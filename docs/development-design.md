@@ -153,7 +153,7 @@ interface ReviewSession {
   prNumber: number;
   headSha: string;            // required for posting inline comments (commit_id)
   promptUsed: string;         // the prompt used at run time (saved for reproducibility)
-  model: string;              // model used
+  model: string;              // concrete model id used (resolved from an alias, e.g. "claude-opus-5-5")
   items: ReviewItem[];
   createdAt: string;          // ISO8601
 }
@@ -161,7 +161,7 @@ interface ReviewSession {
 // User settings
 interface AppSettings {
   reviewPrompt: string;       // the prompt from F-6
-  model: string;              // default: "claude-opus-4-8" (alias "opus" allowed)
+  model: string;              // default: "opus" (alias; options are loaded from the Agent SDK's supportedModels())
 }
 ```
 
@@ -181,7 +181,7 @@ const result = query({
   prompt: buildReviewPrompt(diff, userPrompt), // see below
   options: {
     systemPrompt: { type: "preset", preset: "claude_code" },
-    model: settings.model,            // e.g. "claude-opus-4-8"
+    model: settings.model,            // alias or id, e.g. "opus"
     cwd: checkoutDir,                 // the checked-out temporary repository
     allowedTools: ["Read", "Grep", "Glob", "Bash"],
     permissionMode: "bypassPermissions", // auto-approve since local & read-centric

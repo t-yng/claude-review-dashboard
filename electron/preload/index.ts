@@ -54,6 +54,9 @@ const api: DesktopApi = {
     get: () => ipcRenderer.invoke(IPC.settingsGet),
     save: (settings) => ipcRenderer.invoke(IPC.settingsSave, settings),
   },
+  models: {
+    list: () => ipcRenderer.invoke(IPC.modelsList),
+  },
   locale: {
     get: () => ipcRenderer.invoke(IPC.localeGet),
     set: (locale) => ipcRenderer.invoke(IPC.localeSet, locale),

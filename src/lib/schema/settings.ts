@@ -29,7 +29,8 @@ Security checklist:
 
 Include specific examples of how to fix issues.`;
 
-export const DEFAULT_MODEL = "claude-opus-4-8";
+/** Alias so the default never goes stale when new models ship. */
+export const DEFAULT_MODEL = "opus";
 
 /** User settings. */
 export const appSettingsSchema = z.object({
@@ -43,9 +44,12 @@ export const DEFAULT_SETTINGS: AppSettings = {
   model: DEFAULT_MODEL,
 };
 
-/** Model options shown on the settings screen. */
-export const MODEL_OPTIONS: { value: string; label: string }[] = [
-  { value: "claude-opus-4-8", label: "Claude Opus 4.8" },
-  { value: "claude-sonnet-4-6", label: "Claude Sonnet 4.6" },
-  { value: "claude-haiku-4-5-20251001", label: "Claude Haiku 4.5" },
-];
+/** A model available to the user's account, as reported by the Agent SDK. */
+export interface ModelOption {
+  /** Id to pass as `model` (may be an alias such as "opus"). */
+  value: string;
+  /** Concrete id the value resolves to, e.g. "claude-opus-5-5". */
+  resolvedModel?: string;
+  displayName: string;
+  description: string;
+}

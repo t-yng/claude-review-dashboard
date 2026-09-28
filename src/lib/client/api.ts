@@ -23,6 +23,7 @@ export const api = {
     number: number,
     payload: { headSha: string; items: ReviewItem[] },
   ) => window.api.review.submit(owner, repo, number, payload),
+  models: () => window.api.models.list(),
   getSettings: () => window.api.settings.get(),
   saveSettings: (settings: AppSettings) => window.api.settings.save(settings),
 };

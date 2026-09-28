@@ -89,6 +89,8 @@
   "settingsForm": {
     "modelTitle": "モデル",
     "modelDescription": "レビューに使用する Claude モデル。ローカルの Claude Code 認証を再利用します。",
+    "modelsLoadFailed": "モデル一覧の取得に失敗しました",
+    "modelsEmpty": "利用可能なモデルがありません",
     "promptTitle": "レビュープロンプト",
     "promptDescription": "何をどの観点でレビューするかを自由に記述できます。レビュー実行時にシステム指示へ差し込まれます。",
     "promptPlaceholder": "レビューの観点・重視点を記述…",

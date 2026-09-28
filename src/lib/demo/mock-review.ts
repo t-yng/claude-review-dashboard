@@ -32,7 +32,7 @@ export const demoPull: PullRequestDetail = {
   diff: "",
 };
 
-export const demoModel = "claude-opus-4-8";
+export const demoModel = "claude-opus-5-5";
 
 export const demoItems: ReviewItem[] = [
   {

@@ -89,6 +89,8 @@
   "settingsForm": {
     "modelTitle": "Model",
     "modelDescription": "The Claude model used for reviews. Reuses your local Claude Code authentication.",
+    "modelsLoadFailed": "Failed to load models",
+    "modelsEmpty": "No models available",
     "promptTitle": "Review prompt",
     "promptDescription": "Describe freely what to review and from which perspective. It is injected into the system instructions when a review runs.",
     "promptPlaceholder": "Describe what to focus on in reviews…",

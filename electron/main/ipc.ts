@@ -6,6 +6,7 @@ import { listPulls, getPullDetail } from "@/lib/github/pulls";
 import { submitReview } from "@/lib/github/reviews";
 import { loadSettings, saveSettings } from "@/lib/settings/store";
 import { saveSession } from "@/lib/settings/sessions";
+import { listModels } from "@/lib/review/models";
 import { runReview } from "@/lib/review/engine";
 import { reviewItemSchema } from "@/lib/schema/review";
 import { GhError } from "@/lib/github/gh";
@@ -49,6 +50,8 @@ export function registerIpcHandlers(): void {
 
   ipcMain.handle(IPC.settingsGet, () => loadSettings());
   ipcMain.handle(IPC.settingsSave, (_e, settings) => saveSettings(settings));
+
+  ipcMain.handle(IPC.modelsList, () => listModels());
 
   ipcMain.handle(IPC.localeGet, () => getLocale());
   ipcMain.handle(IPC.localeSet, (_e, locale) => setLocale(locale));

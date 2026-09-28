@@ -4,6 +4,7 @@ import { buildReviewPrompt, JSON_ONLY_RETRY_PROMPT } from "./prompt";
 import { extractReviewItems } from "./extract";
 import { checkoutPr } from "./checkout";
 import { saveAiOutputLog } from "./log";
+import { resolveModelId } from "./models";
 import { resolveClaudeExecutable } from "./claude-executable";
 import type { PullRequestDetail } from "@/lib/schema/github";
 import type { AppSettings } from "@/lib/schema/settings";
@@ -93,7 +94,7 @@ export async function runReview(params: RunReviewParams): Promise<ReviewSession>
       prNumber: pr.number,
       headSha: pr.headRefOid,
       promptUsed: settings.reviewPrompt,
-      model: settings.model,
+      model: await resolveModelId(settings.model),
       items: normalizeItems(items),
       createdAt: new Date().toISOString(),
     };
