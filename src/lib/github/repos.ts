@@ -2,6 +2,9 @@ import { gh, ghJson } from "./gh";
 import { repoSchema, type Repo, type Owner } from "@/lib/schema/github";
 import { z } from "zod";
 
+/** Max PRs fetched by the open-PR search (GitHub search caps at 1000). */
+const SEARCH_LIMIT = 1000;
+
 const REPO_FIELDS = "nameWithOwner,name,owner,description,isPrivate,updatedAt,pushedAt";
 
 /** Sort in descending order of pushedAt (falling back to updatedAt). */
@@ -51,7 +54,41 @@ async function listReposForOwner(owner: string | null, limit: number): Promise<R
 }
 
 /**
- * Fetch the list of accessible repositories.
+ * Get the set of `nameWithOwner` for repositories under `owner` that have at
+ * least one open PR. A single search call replaces a per-repo `pr list`.
+ */
+async function listReposWithOpenPulls(owner: string): Promise<Set<string>> {
+  const raw = await ghJson<unknown>([
+    "search",
+    "prs",
+    "--owner",
+    owner,
+    "--state",
+    "open",
+    "--limit",
+    String(SEARCH_LIMIT),
+    "--json",
+    "repository",
+  ]);
+  const rows = z
+    .array(z.object({ repository: z.object({ nameWithOwner: z.string() }) }))
+    .parse(raw);
+  return new Set(rows.map((r) => r.repository.nameWithOwner));
+}
+
+/** Fetch an owner's repositories, keeping only those that have open PRs. */
+async function listReposForOwnerWithPulls(owner: string | null, limit: number): Promise<Repo[]> {
+  // `gh repo list` with no owner lists the authenticated user's repositories.
+  const searchOwner = owner ?? (await getViewer());
+  const [repos, withPulls] = await Promise.all([
+    listReposForOwner(owner, limit),
+    listReposWithOpenPulls(searchOwner),
+  ]);
+  return repos.filter((r) => withPulls.has(r.nameWithOwner));
+}
+
+/**
+ * Fetch the list of accessible repositories that have at least one open PR.
  *
  * When `owner` is given, only that owner's repositories are fetched.
  * When omitted, repositories from yourself + all your organizations are merged.
@@ -59,14 +96,14 @@ async function listReposForOwner(owner: string | null, limit: number): Promise<R
  */
 export async function listRepos(owner?: string, limit = 100): Promise<Repo[]> {
   if (owner) {
-    return sortByPushedAt(await listReposForOwner(owner, limit));
+    return sortByPushedAt(await listReposForOwnerWithPulls(owner, limit));
   }
 
   const orgs = await listOrgs();
   const owners: (string | null)[] = [null, ...orgs];
 
   const results = await Promise.all(
-    owners.map((o) => listReposForOwner(o, limit).catch(() => [] as Repo[])),
+    owners.map((o) => listReposForOwnerWithPulls(o, limit).catch(() => [] as Repo[])),
   );
 
   // Deduplicate by nameWithOwner
