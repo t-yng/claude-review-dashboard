@@ -35,7 +35,7 @@
     "mineSuffix": " (you)",
     "searchPlaceholder": "Search repositories…",
     "noMatch": "No matching repositories",
-    "notFound": "No repositories found"
+    "notFound": "No repositories with open pull requests"
   },
   "pulls": {
     "title": "Open pull requests",

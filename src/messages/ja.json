@@ -35,7 +35,7 @@
     "mineSuffix": "（自分）",
     "searchPlaceholder": "リポジトリを検索…",
     "noMatch": "一致するリポジトリがありません",
-    "notFound": "リポジトリが見つかりません"
+    "notFound": "オープンなプルリクエストを持つリポジトリが見つかりません"
   },
   "pulls": {
     "title": "オープンな Pull Request",
